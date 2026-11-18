@@ -1,0 +1,71 @@
+{
+  "version": "0.8.2 RC",
+  "date": "2026-11-16",
+  "physical_hardware_tested": false,
+  "azahar": {
+    "status": "not_run",
+    "reason": "Mac locked; owner explicitly requested continuing without Azahar"
+  },
+  "checks": [
+    {
+      "name": "baseline",
+      "command": "make -j3 all test",
+      "exit_code": 0,
+      "evidence": "build/audit-082/baseline.log"
+    },
+    {
+      "name": "full_rebuild",
+      "command": "make -B -j3 all test",
+      "exit_code": 0,
+      "evidence": "build/audit-082/final-build-tests.log"
+    },
+    {
+      "name": "sanitizers",
+      "command": "make sanitize sanitize-polish sanitize-clocks sanitize-learning sanitize-audit sanitize-storage sanitize-native",
+      "exit_code": 0,
+      "evidence": "build/audit-082/final-sanitizers.log"
+    },
+    {
+      "name": "last_regression",
+      "command": "make -j3 all test sanitize-audit",
+      "exit_code": 0,
+      "evidence": "build/audit-082/final-promotion-integration.log"
+    },
+    {
+      "name": "differential",
+      "command": "make differential",
+      "exit_code": 0,
+      "evidence": "build/audit-082/final-differential.log"
+    },
+    {
+      "name": "threads",
+      "command": "clang++ ... -fsanitize=thread ... && tsan-worker",
+      "exit_code": 0,
+      "evidence": "build/audit-082/tsan.log"
+    },
+    {
+      "name": "leaks",
+      "command": "/usr/bin/leaks --atExit -- ./build/test_audit_ui",
+      "exit_code": 0,
+      "evidence": "build/audit-082/leaks-ui.log"
+    },
+    {
+      "name": "assets",
+      "command": ".venv/bin/python tools/audit_assets.py",
+      "exit_code": 0,
+      "evidence": "build/audit-082/assets.log"
+    },
+    {
+      "name": "package_tests",
+      "command": "python3 tests/test_packaging.py",
+      "exit_code": 0,
+      "evidence": "build/audit-082/final-packaging-test.log"
+    },
+    {
+      "name": "local_variants",
+      "command": "python3 tools/build_local_variants.py --personal --local-testing",
+      "exit_code": 0,
+      "evidence": "build/audit-082/variants.log"
+    }
+  ]
+}

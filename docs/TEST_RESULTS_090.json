@@ -1,0 +1,113 @@
+{
+  "version": "0.9.0 RC",
+  "date": "2026-11-17",
+  "host_machine": "arm64",
+  "physical_hardware_tested": false,
+  "azahar_tested_this_update": true,
+  "host_executables": [
+    "test_academy",
+    "test_app",
+    "test_archive",
+    "test_audio_dialogue",
+    "test_audit_ui",
+    "test_bots_ui",
+    "test_clock",
+    "test_clock_ui",
+    "test_core",
+    "test_end_scene",
+    "test_hints",
+    "test_learning_ui",
+    "test_match",
+    "test_native_resources",
+    "test_navigation",
+    "test_polish_ui",
+    "test_preferences",
+    "test_review",
+    "test_storage",
+    "test_storage_audit",
+    "test_strength",
+    "test_styles",
+    "test_tournament",
+    "test_training",
+    "test_update_ui",
+    "test_worker_stress"
+  ],
+  "host_executable_count": 26,
+  "commands": [
+    {
+      "command": "make -j3 test test-target all sanitize-navigation",
+      "exit_code": 0,
+      "log": "build/navigation-audit-090/verification.log",
+      "log_sha256": "0b55e22bd30e743ff56c0f9f7abf1e338a2da6c234ec8aed6e7df1cb3877db16"
+    },
+    {
+      "command": "make -j3 test-learning sanitize-update",
+      "exit_code": 0,
+      "log": "build/navigation-audit-090/integration.log",
+      "log_sha256": "bcdf64513226f1e5ab94fce65e51df54905ca314b69b49b1b66ce0c5146e0f02"
+    },
+    {
+      "command": ".venv/bin/python tools/build_local_variants.py --personal --local-testing",
+      "exit_code": 0,
+      "log": "build/navigation-audit-090/variants.log",
+      "log_sha256": "c2c53decff978ff65c9be0bcca1396b5eeea37dcada0bda8b249575df28fe9f5"
+    }
+  ],
+  "target": {
+    "architecture": "ARMv6K",
+    "project_objects_inspected": 21,
+    "barrier_probe": "CP15 MCR, linked/disassembled; never executed",
+    "both_variants_checked": true
+  },
+  "perft_start_depth4": 197281,
+  "differential_positions": 3012,
+  "differential_histories": 329,
+  "academy_lessons": 10,
+  "academy_accepted_moves": 23,
+  "styles_corpus_searches": 24,
+  "styles_different_choices": 4,
+  "styles_total_nodes": 76360,
+  "assets_count": {
+    "rivals": 40,
+    "expressions": 160,
+    "music_themes": 41
+  },
+  "limits": "Host tests, target compilation/inspection, host sanitizers and limited manual Azahar navigation. Physical performance, audible audio, suspension and extreme-history target RAM remain unvalidated.",
+  "prior_release_commands": [
+    {
+      "command": "make -j3 all test",
+      "exit_code": 0,
+      "log": "build/update-090/baseline.log",
+      "log_sha256": "cd0989c27c492e402f1a02bf5590382e2de255cff5ea0a12b099ab070c70804b"
+    },
+    {
+      "command": "make -j3 all test test-target sanitize-update",
+      "exit_code": 0,
+      "log": "build/update-090/release-verification.log",
+      "log_sha256": "3c28830ee1ef8293423aba1d28cd2543fe96d25d5fabd734adf9961fb3431a9f"
+    },
+    {
+      "command": "make -j3 sanitize-content",
+      "exit_code": 0,
+      "log": "build/update-090/content-sanitizers.log",
+      "log_sha256": "954f802df6f0112451e560674065fb0f9d35611fccce7fa0ad1c383f62dfd526"
+    },
+    {
+      "command": "make -j2 sanitize sanitize-learning sanitize-polish sanitize-clocks sanitize-audit sanitize-storage sanitize-native differential",
+      "exit_code": 0,
+      "log": "build/update-090/regression-sanitizers.log",
+      "log_sha256": "daa01466aee55ba19a1ce0c2f03d20a8200531a603a599a2093ca79f36e9595d"
+    },
+    {
+      "command": ".venv/bin/python tools/build_local_variants.py --personal --local-testing",
+      "exit_code": 0,
+      "log": "build/update-090/variants.log",
+      "log_sha256": "c2c53decff978ff65c9be0bcca1396b5eeea37dcada0bda8b249575df28fe9f5"
+    }
+  ],
+  "navigation_audit": "docs/NAVIGATION_AUDIT_090.md",
+  "azahar_scope": "PARTIAL manual retest via Computer: title/Home B, library replay and B, cancel deletion, tournament menu B, academy lesson 1 completed with hint and B returns, Preferences B/touch Back, touch cancel Quit. Full tournament, other lessons, clocks and hardware not validated.",
+  "navigation_baseline_failing_scenarios": 9,
+  "navigation_additional_help_gap_failure": 1,
+  "manual_azahar_report": "docs/MANUAL_AZAHAR_20261117.md"
+}

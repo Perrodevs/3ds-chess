@@ -1,0 +1,69 @@
+#include "ui/app.hpp"
+namespace ui {
+bool App::selectProfile(int index) {
+    if (!profilesReady || index < 0 || index >= profiles::capacity ||
+        !profileManager.slots[size_t(index)].occupied) return false;
+    economy::State candidate;
+    storage::Store candidateStore(profileManager.path(index));
+    if (!candidateStore.load(candidate)) {
+        message("Perfil danado: prueba otra ranura; archivos conservados"); return false;
+    }
+    if (activeProfile >= 0 && !save()) return false;
+    tournamentController.stop(); bot.stop(); hints.cancel();
+    developerEnabled = false; developerSandbox = false; developerOriginal = {};
+    openingActive = openingPractice = false;
+    trainingActive = false; tournamentActive = false; progressionActive = false; academyMode = false;
+    dataDirectory = profileManager.path(index);
+    store = storage::Store(dataDirectory);
+    trainingStore = training::ProgressStore(dataDirectory + "/training.dat");
+    academyStore = academy::Store(dataDirectory + "/academy.dat");
+    tournamentStore = tournament::Store(dataDirectory + "/tournament.dat");
+    archiveStore = archive::Store(dataDirectory);
+    progressionStore = progression::Store(dataDirectory + "/progression.dat");
+    openingStore = openings::Store(dataDirectory + "/openings.dat");
+    activeProfile = profileChoice = index;
+    selected = -1; hintMove = {}; claimIntent = false; animationFrames = 0;
+    reviewGame = {}; reviewSource = {}; reviewPly = 0;
+    reviewLines.clear(); reviewExplanation.clear();
+    loadData();
+    state.profile.name = profileManager.slots[size_t(index)].name;
+    go(View::Title);
+    return true;
+}
+void App::profileAction() {
+    if (!profilesReady) { message("Perfiles no disponibles: " + profileManager.error); return; }
+    if (view == View::Profiles) {
+        if (focus == 3) { back(); return; }
+        profileChoice = focus;
+        go(View::ProfileSlot); return;
+    }
+    if (view == View::ConfirmProfileDelete) {
+        if (focus != 0) { back(); return; }
+        if (!profileManager.remove(profileChoice)) { message("No se pudo retirar el perfil"); return; }
+        if (activeProfile == profileChoice) {
+            tournamentController.stop(); bot.stop(); hints.cancel();
+            activeProfile = -1; developerEnabled = developerSandbox = false;
+            trainingActive = tournamentActive = progressionActive = false;
+            state = {}; preferences = {}; archiveState = {}; archiveReady = false;
+            normalState = {}; developerOriginal = {};
+        }
+        go(View::Profiles); return;
+    }
+    const auto &slot = profileManager.slots[size_t(profileChoice)];
+    if (focus == 0) {
+        if (!slot.occupied && !profileManager.create(profileChoice, "Jugador " + std::to_string(profileChoice + 1), profileChoice)) {
+            message("No se pudo crear el perfil"); return;
+        }
+        selectProfile(profileChoice);
+    } else if (focus == 1) {
+        if (activeProfile == profileChoice && slot.occupied) wantsName = true;
+        else message("Entra al perfil antes de renombrarlo");
+    } else if (focus == 2) {
+        if (!slot.occupied) { message("Crea primero el perfil"); return; }
+        if (!profileManager.setAvatar(profileChoice, (slot.avatar + 1) % 40)) message("Avatar sin guardar");
+    } else if (focus == 3) {
+        if (slot.occupied) go(View::ConfirmProfileDelete);
+        else message("La ranura ya esta vacia");
+    } else back();
+}
+} // namespace ui
