@@ -41,19 +41,27 @@ git config --local user.email "tu-correo-elegido@example.com"
 
 `main` conserva la base inicial y, después, cambios revisados/aceptados. Que una
 versión esté en `main` no significa que esté validada en una consola física.
-Las actualizaciones nuevas se desarrollan en ramas con prefijo `feature/`:
+Las actualizaciones grandes se desarrollan en ramas descriptivas, por ejemplo
+`feature/chess-variants`, `fix/save-corruption` o `perf/chess-engine`. Una tarea
+pequeña y segura puede reutilizar la rama de trabajo actual. Ejemplo de función nueva:
 
 ```sh
 git switch main
-git switch -c feature/nombre-del-cambio
+git switch -c feature/opponent-personalities
 git status --short
 git diff
 # Añade únicamente las rutas que revisaste:
 git add source/ruta.cpp tests/prueba.cpp
 git diff --cached --stat
 git diff --cached
-git commit -m "Describe el cambio concreto"
+git commit -m "feat(ai): add configurable opponent personalities"
 ```
+
+El ejemplo no implementa una función: sustituye la rama, las rutas y el mensaje
+por los cambios reales de tu tarea. Utiliza `tipo(área): descripción breve` en
+inglés, con verbos claros. Tipos permitidos: `feat`, `fix`, `perf`, `refactor`,
+`test`, `docs`, `style`, `build` y `chore`. No uses mensajes genéricos como
+`update`, `changes`, `fix stuff` o `final`.
 
 Sustituye las rutas de ejemplo por archivos reales. Los cambios sin commit
 pertenecen al directorio de trabajo y pueden acompañar un cambio de rama: guarda
@@ -63,16 +71,20 @@ Después de comprobar y aceptar una función:
 
 ```sh
 git switch main
-git merge --no-ff feature/nombre-del-cambio
+git merge --no-ff feature/opponent-personalities
 ```
 
 El primer commit es raíz y pertenece a `main`. La rama `feature/next-update` se
 crea desde esa misma base para el siguiente trabajo; todavía no añade cambios.
-No hay ramas remotas ni comandos de publicación configurados.
+Su nombre genérico se conserva como parte de la configuración inicial; no se
+elimina ni se reescribe. Para trabajo nuevo importante usa un nombre basado en
+la función real. No hay ramas remotas ni comandos de publicación configurados.
 
 ## Etiquetas de versión
 
-Etiqueta un commit existente que hayas revisado. Para una candidata, usa un
+Etiqueta únicamente un commit revisado cuya versión coincida con el código y
+los artefactos entregados, después de comprobar las pruebas correspondientes.
+No se crea una etiqueta automáticamente por adoptar estas reglas. Para una candidata, usa un
 nombre que no prometa una versión estable, por ejemplo:
 
 ```sh
@@ -80,6 +92,7 @@ git tag -a v1.1.0-rc.1 -m "Legacy: candidata pendiente de pruebas fisicas"
 git show v1.1.0-rc.1
 ```
 
+No declares una versión estable mientras falten pruebas físicas.
 La etiqueta no compila, no ejecuta pruebas y no crea versiones antiguas. No se
 crean etiquetas retrospectivas a partir de ZIP como si hubieran sido commits.
 
@@ -126,3 +139,21 @@ de recuperación: pueden destruir cambios o los recursos locales ignorados.
 `git status`, `git add`, `git commit`, `git branch` y `git tag` no publican nada.
 `git remote -v` permite comprobar que no hay destinos configurados. Este trabajo
 no añade remotos, submódulos, Git LFS, credenciales de GitHub ni publicación.
+
+## Reglas permanentes y registro de cambios
+
+`AGENTS.md` establece el flujo para futuras tareas. Cada mejora coherente se
+confirma junto con sus pruebas relevantes; cambios independientes deben ir en
+commits distintos, sin fraccionar cada pequeña edición. Antes de confirmar,
+revisa estado, diff preparado, privacidad e ignorados. Una prueba fallida debe
+informarse y no puede presentarse como validación.
+
+Mantén `CHANGELOG.md` actualizado durante cada tarea, sin esperar a que se solicite.
+Registra funciones, correcciones, rendimiento, compatibilidad, migraciones y
+limitaciones reales; no inventes entradas históricas a partir de los ejemplos.
+El informe final incluye cambio, pruebas, rama, hash corto, mensaje exacto y
+pendientes. No modifiques innecesariamente el commit raíz para adaptarlo al
+formato nuevo: la convención se aplica a los commits siguientes.
+
+No borres ramas, reescribas historial ni ejecutes operaciones destructivas sin
+autorización. No se configura ningún remoto ni se ejecuta `git push`.
