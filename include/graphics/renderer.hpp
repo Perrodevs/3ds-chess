@@ -1,6 +1,9 @@
 #pragma once
 #include <cstdint>
 #include <string>
+#ifndef __3DS__
+#include <vector>
+#endif
 #ifdef __3DS__
 #include <citro2d.h>
 #else
@@ -19,6 +22,7 @@ class Renderer {
 #else
     std::ostringstream svg;
     int screen = 0;
+    std::vector<std::string> presented;
 #endif
   public:
     Renderer() = default;
@@ -35,10 +39,12 @@ class Renderer {
     void image(int sx, int sy, int w, int h, int x, int y, int scale = 1, Color tint = 0xffffffff);
     void text(int x, int y, const std::string &, Color color = 0xffffffff, int scale = 1,
               int maxChars = 100);
+    void rawText(int x, int y, const std::string &, Color color = 0xffffffff, int scale = 1, int maxChars = 100);
     void piece(int p, int x, int y, int skin = 0);
     void portrait(int character, int expression, int x, int y, int scale = 2);
 #ifndef __3DS__
     void save(const std::string &);
+    const std::vector<std::string> &visibleTexts() const { return presented; }
 #endif
 };
 } // namespace graphics

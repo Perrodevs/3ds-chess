@@ -6,6 +6,14 @@ releases. No historical commits or version tags are inferred from those reports.
 
 ## Unreleased
 
+### Added — localization foundation
+
+- Add central ES/EN translation catalogs, bounded composition lookup, numeric
+  formatting and UTF-8 Spanish glyph mapping.
+- Add catalog coverage, uniqueness, format and text-capacity checks; preserve
+  rule notation and machine-readable formats independently of language.
+
+
 ### Documentation
 
 - Define persistent project rules for Conventional Commits, descriptive branches,

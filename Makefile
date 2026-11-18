@@ -5,10 +5,10 @@ ARM_CXX := $(DEVKITARM)/bin/arm-none-eabi-g++
 HOST_CXX ?= clang++
 PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
 VERSION := $(shell sed -n 's/.*version = "\([^"]*\)";.*/\1/p' include/app_version.hpp)
-COMMON := source/chess/clock.cpp source/chess/chess.cpp source/ai/search.cpp source/ai/styles.cpp source/ai/bots.cpp source/economy/profile.cpp source/storage/store.cpp source/storage/profiles.cpp source/progression/progression.cpp source/openings/openings.cpp source/variants/variants.cpp source/composer/composer.cpp source/platform/battery.cpp
+COMMON := source/chess/clock.cpp source/chess/chess.cpp source/ai/search.cpp source/ai/styles.cpp source/ai/bots.cpp source/economy/profile.cpp source/storage/store.cpp source/storage/profiles.cpp source/progression/progression.cpp source/openings/openings.cpp source/variants/variants.cpp source/composer/composer.cpp source/platform/battery.cpp source/localization/localization.cpp
 APP := $(COMMON) source/ai/worker.cpp source/ai/hints.cpp source/ui/end_scene.cpp source/ui/onboarding.cpp source/ui/review.cpp source/training/campaign.cpp source/training/academy.cpp source/graphics/renderer.cpp source/graphics/audio.cpp source/tournament/tournament.cpp source/archive/archive.cpp source/ui/preferences.cpp source/ui/developer.cpp source/ui/profiles.cpp source/ui/progression.cpp source/ui/openings.cpp source/ui/variants_ui.cpp source/ui/composer_ui.cpp source/ui/app.cpp source/main.cpp
 OBJS := $(patsubst source/%.cpp,build/3ds/%.o,$(APP))
-HEADERS := $(shell find include -name '*.hpp')
+HEADERS := $(shell find include -name '*.hpp' -o -name '*.inc')
 ARCH := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -mword-relocations
 CPPFLAGS := -D__3DS__ -Iinclude -Iassets/generated -Iassets/portraits -I$(DEVKITPRO)/libctru/include
 CXXFLAGS := $(ARCH) -std=gnu++17 -O2 -g -Wall -Wextra -ffunction-sections -fdata-sections -fno-exceptions -fno-rtti
@@ -161,13 +161,13 @@ sanitize-audit:
 	$(HOST_CXX) $(HOSTFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer $(APP:source/main.cpp=) tests/test_worker_stress.cpp -o build/sanitize_worker_stress
 	./build/sanitize_worker_stress
 
-build/test_native_resources: source/graphics/renderer.cpp source/graphics/audio.cpp source/ai/bots.cpp source/chess/chess.cpp tests/test_native_resources.cpp tests/native_stubs/3ds.h tests/native_stubs/citro2d.h $(HEADERS)
-	$(HOST_CXX) $(HOSTFLAGS) -D__3DS__ -Itests/native_stubs source/graphics/renderer.cpp source/graphics/audio.cpp source/ai/bots.cpp source/chess/chess.cpp tests/test_native_resources.cpp -o '$@'
+build/test_native_resources: source/graphics/renderer.cpp source/graphics/audio.cpp source/ai/bots.cpp source/chess/chess.cpp source/localization/localization.cpp tests/test_native_resources.cpp tests/native_stubs/3ds.h tests/native_stubs/citro2d.h $(HEADERS)
+	$(HOST_CXX) $(HOSTFLAGS) -D__3DS__ -Itests/native_stubs source/graphics/renderer.cpp source/graphics/audio.cpp source/ai/bots.cpp source/chess/chess.cpp source/localization/localization.cpp tests/test_native_resources.cpp -o '$@'
 test-native: build/test_native_resources
 	./build/test_native_resources
 test-audit: test-native
 sanitize-native:
-	$(HOST_CXX) $(HOSTFLAGS) -O1 -fsanitize=address,undefined -D__3DS__ -Itests/native_stubs source/graphics/renderer.cpp source/graphics/audio.cpp source/ai/bots.cpp source/chess/chess.cpp tests/test_native_resources.cpp -o build/sanitize_native_resources
+	$(HOST_CXX) $(HOSTFLAGS) -O1 -fsanitize=address,undefined -D__3DS__ -Itests/native_stubs source/graphics/renderer.cpp source/graphics/audio.cpp source/ai/bots.cpp source/chess/chess.cpp source/localization/localization.cpp tests/test_native_resources.cpp -o build/sanitize_native_resources
 	./build/sanitize_native_resources
 
 .PHONY: test-native sanitize-native sanitize-storage
@@ -296,3 +296,11 @@ sanitize-remaining:
 	./build/sanitize_variants_ui
 	$(HOST_CXX) $(HOSTFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer $(APP:source/main.cpp=) tests/test_composer_ui.cpp -o build/sanitize_composer_ui
 	./build/sanitize_composer_ui
+
+build/test_translation: source/localization/localization.cpp tests/test_translation.cpp $(HEADERS)
+	$(HOST_CXX) $(HOSTFLAGS) source/localization/localization.cpp tests/test_translation.cpp -o '$@'
+test-translations: build/test_translation
+	./build/test_translation
+	$(PYTHON) tests/test_localization_catalog.py
+	$(PYTHON) tests/test_content_catalog.py
+test: test-translations

@@ -1,4 +1,5 @@
 #include "graphics/renderer.hpp"
+#include "localization/localization.hpp"
 #include "atlas.hpp"
 #include "portraits.hpp"
 #include <algorithm>
@@ -93,6 +94,9 @@ void Renderer::shutdown() {
 #endif
 }
 void Renderer::frame() {
+#ifndef __3DS__
+    presented.clear();
+#endif
 #ifdef __3DS__
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 #else
@@ -202,9 +206,15 @@ void Renderer::image(int sx, int sy, int w, int h, int x, int y, int scale, Colo
         }
 #endif
 }
-void Renderer::text(int x, int y, const std::string &text, Color c, int scale, int maxChars) {
+void Renderer::text(int x, int y, const std::string &text, Color c, int scale, int maxChars) { rawText(x,y,localization::translate(text),c,scale,maxChars); }
+void Renderer::rawText(int x, int y, const std::string &text, Color c, int scale, int maxChars) {
+#ifndef __3DS__
+    presented.push_back(text);
+#endif
     int start = x, count = 0;
-    for (unsigned char ch : text) {
+    size_t byte=0;
+    while(byte<text.size()) {
+        uint32_t ch=localization::nextCodepoint(text,byte);
         if (ch == '\n') {
             x = start;
             y += 9 * scale;
@@ -212,9 +222,7 @@ void Renderer::text(int x, int y, const std::string &text, Color c, int scale, i
         }
         if (++count > maxChars)
             break;
-        if (ch < 32 || ch > 126)
-            ch = '?';
-        int index = ch - 32;
+        int index = localization::fontIndex(ch);
         image((index % 16) * 8, (index / 16) * 8, 6, 8, x, y, scale, c);
         x += 6 * scale;
     }

@@ -89,6 +89,21 @@ for code in range(32,127):
  for y,row in enumerate(pattern):
   for x,v in enumerate(row):
    if v=='1':atlas.putpixel((ox+x,oy+y),(255,255,255,255))
+# Sixteen UTF-8 Spanish glyphs occupy unused font cells95..110 (before sprites).
+extra_letters=['a','e','i','o','u','u','n','A','E','I','O','U','U','N']
+for n,c in enumerate(extra_letters):
+ pattern=lower.get(c,patterns.get(c,[]))
+ ox=((95+n)%16)*8;oy=((95+n)//16)*8
+ mark=[(2,0),(3,0)] if n%7==6 else [(1,0),(3,0)] if n%7==5 else [(3,0),(2,1)]
+ for x,y in mark:atlas.putpixel((ox+x,oy+y),(255,255,255,255))
+ for y,row in enumerate(pattern):
+  for x,v in enumerate(row):
+   if v=='1':atlas.putpixel((ox+x,oy+y+1),(255,255,255,255))
+for n,pattern in enumerate([['00100','00000','00100','01000','10000','10001','01110'],['1','0','1','1','1','1','1']],109):
+ ox=(n%16)*8;oy=(n//16)*8
+ for y,row in enumerate(pattern):
+  for x,v in enumerate(row):
+   if v=='1':atlas.putpixel((ox+x,oy+y),(255,255,255,255))
 # Hand-drawn silhouettes, independent of the reference pack.
 shapes=[
 ['000000000000','000011110000','000111111000','000111111000','000011110000','000001100000','000011110000','000011110000','000111111000','001111111100','001111111100','000000000000'],
