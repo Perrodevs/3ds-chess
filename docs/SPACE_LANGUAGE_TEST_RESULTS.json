@@ -1,0 +1,142 @@
+{
+  "version": "1.2.0 RC1",
+  "status": "READY FOR PHYSICAL TESTS; local QA artifacts only",
+  "physical_tested": false,
+  "azahar_this_update": "Not executed; prior authorization to continue without Azahar. Host render checks do not validate emulator or hardware layout.",
+  "host_regression": {
+    "command": "make -j3 test all test-target",
+    "exit_code": 0,
+    "program_count": 42,
+    "programs": [
+      "test_native_resources",
+      "test_preferences",
+      "test_tournament",
+      "test_archive",
+      "test_update_ui",
+      "test_academy",
+      "test_styles",
+      "test_profiles",
+      "test_legacy_ui",
+      "test_progression",
+      "test_progression_ui",
+      "test_openings",
+      "test_openings_ui",
+      "test_variants",
+      "test_composer",
+      "test_battery",
+      "test_composer_ui",
+      "test_variants_ui",
+      "test_localization",
+      "test_space_ui",
+      "test_space_secret",
+      "test_translation",
+      "test_space_scene",
+      "test_review",
+      "test_training",
+      "test_audio_dialogue",
+      "test_learning_ui",
+      "test_audit_ui",
+      "test_worker_stress",
+      "test_storage_audit",
+      "test_navigation",
+      "test_polish_ui",
+      "test_hints",
+      "test_end_scene",
+      "test_clock",
+      "test_clock_ui",
+      "test_core",
+      "test_storage",
+      "test_app",
+      "test_match",
+      "test_strength",
+      "test_bots_ui"
+    ],
+    "log": "build/space-language/verified-regression.log",
+    "sha256": "81a039341c5f7dfad860a754aa542f5533bf61c28aaa674e514f0c5ba2c450b7"
+  },
+  "focused_sanitizers": {
+    "command": "make -j3 sanitize-space-language all test-target",
+    "exit_code": 0,
+    "checks": [
+      "AddressSanitizer + UndefinedBehaviorSanitizer localization/profile UI",
+      "AddressSanitizer + UndefinedBehaviorSanitizer secret UI including failed sidecar write/retry",
+      "separate secret backend sanitizer check"
+    ],
+    "log": "build/space-language/final-sanitizers-target.log"
+  },
+  "content": {
+    "central_keys": 1403,
+    "content_field_instances": 727,
+    "fictional_dialogue_events": 369,
+    "procedural_music_themes": 42,
+    "python_catalog_tests": 7,
+    "perft_start_depth_4": 197281
+  },
+  "target": {
+    "architecture": "ARMv6K",
+    "project_object_count": 36,
+    "stack_limit_changed": false,
+    "runtime_execution": false,
+    "language_builds": [
+      "ES",
+      "EN"
+    ],
+    "default_restored": "ES"
+  },
+  "new_coverage": [
+    "first-run selection and live change",
+    "independent profile preferences and notation",
+    "legacy archive v1 load / v2 round trip",
+    "truncated language/secret files and backups",
+    "Byte/Jensen validated settlements; practice/duplicates excluded",
+    "41 selector slots and inert empty cells",
+    "four original expressions and three finite scenes",
+    "A/B skip preserves result and coins",
+    "failed sidecar write blocks next game until safe retry"
+  ],
+  "integration_failures_resolved": [
+    "native stub target missing localization link source",
+    "old ASCII-only dialogue assertion incompatible with Spanish glyphs",
+    "touch tests assumed old Options row height",
+    "translation assertion expected incorrect punctuation",
+    "catalog snapshot assumed 41 rivals on pre-integration 40-rival snapshot",
+    "package target verification reset EN to default ES; explicit language propagated and regression added"
+  ],
+  "package_verification": {
+    "command": ".venv/bin/python tools/build_language_packages.py --local-testing",
+    "exit_code": 0,
+    "metadata": "Both SMDH contain 1.2.0 RC1 and correct ES/EN default",
+    "same_install_paths": true,
+    "zip_integrity": true,
+    "only_differences": [
+      "3ds/3ds-chess/3ds-chess.3dsx",
+      "3ds/3ds-chess/3ds-chess.smdh"
+    ],
+    "all_release_hashes_checked": true,
+    "source_files": 449,
+    "source_matches_worktree": true,
+    "personal_saves_private_directories_absent": true,
+    "hash_manifest": "dist/SHA256SUMS-LANGUAGES"
+  },
+  "pending": [
+    "Physical Old 3DS XL controls/touch and legibility",
+    "Actual animation timing/performance, music/NDSP and suspension",
+    "Real SD interruption behavior; no universal power-loss guarantee",
+    "Full manual ES/EN screen walkthrough, including dynamic text extremes",
+    "Resource rights clearance before redistribution"
+  ],
+  "compatibility": "Old IDs 0..39 retained. Separate versioned language/secret sidecars. Archive reader accepts v1/v2; v2 and rival40 require backup when downgrading.",
+  "package_unit_tests": {
+    "commands": [
+      ".venv/bin/python tests/test_packaging.py",
+      ".venv/bin/python tests/test_language_packages.py"
+    ],
+    "count": 4,
+    "exit_code": 0
+  },
+  "measurements": {
+    "performance": "No ARM execution or FPS measurement. Scene limits measured in deterministic update frames only.",
+    "memory": "No hardware RAM measurement; atlas dimensions and stack setting unchanged.",
+    "host_vs_target": "Sanitizers run on host; ARMv6K check inspects compiled objects, not runtime."
+  }
+}

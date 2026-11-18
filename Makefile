@@ -182,6 +182,7 @@ sanitize-storage:
 .PHONY: test-package audit-assets
 test-package:
 	$(PYTHON) tests/test_packaging.py
+	$(PYTHON) tests/test_language_packages.py
 audit-assets:
 	$(PYTHON) tools/audit_assets.py
 test-audit: test-package audit-assets

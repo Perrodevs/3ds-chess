@@ -1,6 +1,14 @@
 # 3DS Chess
 
-**1.1.0 RC Legacy — pendiente de validacion fisica.**
+**1.2.0 RC1 — Space & Language; pendiente de validación física.**
+
+Español/English con selector inicial e idioma por perfil. Elon Musk es el rival
+secreto 41: vence a Byte y Jensen en IA válida para desbloquearlo. Cuatro
+expresiones, nueve diálogos ficticios y escenas espaciales que puedes saltar.
+[Implementación y pendientes](docs/SPACE_LANGUAGE.md) ·
+[Pruebas](docs/SPACE_LANGUAGE_TEST_RESULTS.json) · [Idiomas](docs/LOCALIZATION.md).
+Los ZIP ES y EN son alternativas de instalación y conservan los mismos guardados.
+Solo pruebas locales: los recursos anteriores todavía requieren revisión de derechos.
 
 Tres perfiles, Developer con codigo `1234`, Carrera, Supervivencia, 19 trofeos,
 10 aperturas/20 lineas, editor FEN, 30 posiciones y 30 puzzles personalizados por
@@ -8,7 +16,7 @@ perfil, Chess960/Three-check/King of the Hill con IA y bateria aproximada real.
 Desde el menu principal, SELECT abre los modos Legacy.
 [Informe completo y limites](docs/LEGACY_COMPLETE.md) · [Pruebas](docs/LEGACY_TEST_RESULTS.json).
 Ajedrez homebrew nativo C++17 para Old Nintendo 3DS XL. Offline, graficos 2D pixel art,
-dos pantallas, motor propio y 40 rivales. Se conserva una copia recuperable de 0.8.2 RC.
+dos pantallas, motor propio y 41 rivales. Se conserva una copia recuperable de 0.8.2 RC.
 [Implementacion](docs/UPDATE_090.md), [cambios](docs/CHANGELOG_090.md),
 [pruebas](docs/TESTING.md) y [auditoria anterior](docs/AUDIT_082.md).
 
@@ -22,10 +30,10 @@ dos pantallas, motor propio y 40 rivales. Se conserva una copia recuperable de 0
 - Bateria mediante PTMU: barras 0–5/carga, aviso breve no bloqueante, sin porcentajes.
 - Inicio deliberado, ayuda de4 páginas y menús táctiles inferiores.
 - Contra IA, dos personas en una consola y práctica sin reloj/premios con deshacer.
-- 40 rivales en 8 páginas:3 originales,28 homenajes/bots ajedrecísticos,
- 8 invitados de videojuegos y Jensen Huang. [Catálogo](docs/BOTS.md).
-- 160 expresiones de 32×32, 360 diálogos ficticios breves,41 bucles musicales originales
- (menú+40 rivales) y efectos. Música apagada y efectos encendidos por defecto.
+- 41 rivales en 9 páginas: los 40 originales y Elon Musk secreto.
+  [Catálogo anterior](docs/BOTS.md) y [rival nuevo](docs/SPACE_SECRET.md).
+- 164 expresiones de 32×32 (160 en atlas y 4 por código), 369 diálogos ficticios
+ breves ES/EN,42 bucles musicales originales (menú+41 rivales) y efectos. Música apagada y efectos encendidos por defecto.
 - Reglas legales, jaque/mate/ahogado, enroques, al paso,4 promociones,
  reclamaciones triple/50 y automáticas quíntuple/75; casos habituales de material
  insuficiente. La detección general de posiciones muertas sigue incompleta.

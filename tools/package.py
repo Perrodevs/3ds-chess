@@ -9,7 +9,7 @@ import re
 import zipfile
 
 EXCLUDED = {'.venv', 'build', 'dist', 'private', '.git', '__pycache__'}
-ROOT_FILES = {'README.md', 'PROGRESS.md', 'LICENSE', 'Makefile', '.gitignore', '.clang-format'}
+ROOT_FILES = {'AGENTS.md', 'CHANGELOG.md', 'README.md', 'PROGRESS.md', 'LICENSE', 'Makefile', '.gitignore', '.clang-format'}
 ROOT_DIRS = {'source', 'include', 'assets', 'tests', 'tools', 'docs'}
 
 
@@ -66,7 +66,11 @@ def package(root, local_testing=False):
         for required in ('LEGACY_COMPLETE.md', 'LEGACY_TEST_RESULTS.json', 'LEGACY_COMPOSER.md', 'LEGACY_VARIANTS.md', 'LEGACY_BATTERY.md'):
             if not (root / 'docs' / required).is_file():
                 raise ValueError('Missing required Legacy document: ' + required)
-    docs = ['README.md', 'LICENSE'] + [str(p.relative_to(root)) for p in sorted((root / 'docs').rglob('*'))
+    if version.startswith('1.2.'):
+        for required in ('SPACE_LANGUAGE.md','SPACE_LANGUAGE_TEST_RESULTS.json','LOCALIZATION.md'):
+            if not (root / 'docs' / required).is_file():
+                raise ValueError('Missing Space & Language document: '+required)
+    docs = ['README.md', 'CHANGELOG.md', 'LICENSE'] + [str(p.relative_to(root)) for p in sorted((root / 'docs').rglob('*'))
                                      if p.is_file() and p.suffix in {'.md', '.json'}]
     sd = [(dist / f'3ds-chess.{extension}', f'3ds/3ds-chess/3ds-chess.{extension}')
           for extension in ('3dsx', 'smdh')]

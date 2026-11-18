@@ -9,7 +9,7 @@ class Packaging(unittest.TestCase):
  def test_source_filter(self):
   with tempfile.TemporaryDirectory() as d:
    root=Path(d)
-   wanted={'README.md','include/app_version.hpp','tests/native_stubs/3ds.h','assets/source/README.md','docs/ASSET_RIGHTS.md'}
+   wanted={'AGENTS.md','CHANGELOG.md','README.md','include/app_version.hpp','tests/native_stubs/3ds.h','assets/source/README.md','docs/ASSET_RIGHTS.md'}
    forbidden={'private/personal.3dsx','build/profile.dat','dist/game.zip','.venv/token','assets/source/8 Bit Chess.zip','arbitrary.secret','source/example.dSYM/private'}
    for name in wanted|forbidden:
     p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text('test')

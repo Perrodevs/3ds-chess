@@ -21,3 +21,13 @@ El atlas de retratos mezcla grupos con distintos derechos. Por eso un binario co
 piezas originales también contiene recursos pendientes de revisión. No basta
 con excluir la carpeta private/ para convertirlo en una distribución pública.
 `tools/package.py --local-testing` debe marcar expresamente esta limitación.
+
+## Space & Language
+
+Elon, sus cuatro expresiones, el automóvil rojo, el cohete y sus animaciones
+se dibujan mediante código original (`include/graphics/elon_sprite.hpp` y
+`source/ui/end_scene.cpp`). No hay fotografías ni vídeo nuevo descargado.
+Las identidades/personas y marcas aludidas no son una afiliación ni se licencian
+por la licencia MIT del código. Sus diálogos son ficción, no citas. El tema nuevo
+es síntesis procedural original. Los recursos privados y atlas anteriores
+conservan las restricciones del inventario; los paquetes siguen siendo locales.

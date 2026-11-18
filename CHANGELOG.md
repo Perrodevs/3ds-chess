@@ -4,7 +4,16 @@ This log records actual project changes from the adoption of the local Git workf
 Earlier implementation reports remain in `docs/`; they are not retroactive Git
 releases. No historical commits or version tags are inferred from those reports.
 
-## Unreleased
+## 1.2.0 RC1 — Space & Language (physical validation pending)
+
+### Build and compatibility
+
+- Preserve the selected build language during target verification, preventing an
+  English package from being silently rebuilt with Spanish defaults.
+- Generate ES/EN alternative SD packages from one source, with matching SMDH,
+  source ZIP and SHA-256. Explicit language choices override package defaults.
+- Preserve previous saves on load; archive writes now use v2. Older executables
+  require their corresponding backup when downgrading. No hardware validation.
 
 ### Added — profile UI integration
 
@@ -33,18 +42,18 @@ releases. No historical commits or version tags are inferred from those reports.
   rule notation and machine-readable formats independently of language.
 
 
-### Documentation
+### Earlier workflow documentation (1.1.0 snapshot)
 
 - Define persistent project rules for Conventional Commits, descriptive branches,
   relevant checks, release tags and task reports in `AGENTS.md`.
 - Update the local Git guide to use those conventions and maintain this changelog
   with each coherent improvement.
 
-### Compatibility and limitations
+### Earlier workflow scope (before this update)
 
-- No game code, save format, assets, dependencies or canonical version changed.
-- The current game remains `1.1.0 RC Legacy`, pending physical validation.
-- Git remains local; no remotes, publication or new release tags were created.
+- That workflow-only change did not alter game code, saves, assets or version.
+- At workflow adoption, the game was `1.1.0 RC Legacy`, pending physical validation.
+- Git was kept local; no remotes, publication or release tags were added then.
 
 ## Existing baseline
 
