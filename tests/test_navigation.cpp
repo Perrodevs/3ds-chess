@@ -40,7 +40,7 @@ int main() {
     const std::string root=directory;
     {ui::App app(root+"/home");home(app);key(app,ui::B);expect(app,ui::View::Title,"Home B returns Title");}
     {ui::App app(root+"/preferences");home(app);tap(app,130);assert(app.view==ui::View::Options);
-     tap(app,168);assert(app.view==ui::View::Preferences);key(app,ui::B);
+     tap(app,153);assert(app.view==ui::View::Preferences);key(app,ui::B);
      if(expect(app,ui::View::Options,"Preferences B returns Options")) {key(app,ui::A);expect(app,ui::View::Preferences,"Back preserves Options selection");}}
     for(int row : {4,5}) {
         ui::App app(root+"/child"+std::to_string(row));openTraining(app);tap(app,48+24*row);
@@ -76,7 +76,7 @@ int main() {
      unchanged(first==render(app,root+"/gap.svg"),"Review touch between buttons must not seek");
      tap(app,200,310);expect(app,ui::View::Review,"Review touch past Back ignored");}
     // Both the visible Back button and B must retain the same parent row.
-    {ui::App app(root+"/back-button");home(app);tap(app,130);tap(app,168);tap(app,120);
+    {ui::App app(root+"/back-button");home(app);tap(app,130);tap(app,153);tap(app,120);
      assert(app.view==ui::View::Options);key(app,ui::A);expect(app,ui::View::Preferences,"Visible Back retains Options row");}
     for (const auto &entry : {std::pair<int,ui::View>{2,ui::View::Shop}, {4,ui::View::Options}, {3,ui::View::Stats}}) {
         ui::App app(root+"/home-child"+std::to_string(entry.first));home(app);tap(app,48+entry.first*20);

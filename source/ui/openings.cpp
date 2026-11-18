@@ -1,13 +1,15 @@
+#include "localization/localization.hpp"
 #include "ui/app.hpp"
 #include <algorithm>
 namespace ui {
 namespace {
 constexpr auto textColor = graphics::rgb(236,227,192), accent = graphics::rgb(235,185,78), dim = graphics::rgb(142,158,169);
 void words(graphics::Renderer &r,int y,std::string text,int maxLines) {
+    text=localization::translate(text);
     for(int i=0;i<maxLines&&!text.empty();++i){
         size_t count=std::min<size_t>(49,text.size());
         if(count<text.size()){auto space=text.rfind(' ',count);if(space!=std::string::npos&&space>0)count=space;}
-        r.text(12,y+11*i,text.substr(0,count),dim,1,49);text.erase(0,count);
+        r.rawText(12,y+11*i,text.substr(0,count),dim,1,49);text.erase(0,count);
         while(!text.empty()&&text.front()==' ')text.erase(0,1);
     }
 }

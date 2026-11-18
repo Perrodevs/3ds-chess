@@ -85,7 +85,7 @@ int main(){
  // Production App route, native-text adapter, selected-profile sidecar and normal isolation.
  {
   const auto profilesPath=path+"/production";
-  ui::App app(profilesPath,true);app.init();
+  ui::App app(profilesPath,true);app.init();if(app.view==ui::View::Language) app.update({ui::A,false,0,0},0);
   auto press=[&](unsigned k){app.update({k,false,0,0},0);};
   auto touch=[&](int y){app.update({0,true,50,y},0);};
   touch(48);touch(48);press(ui::A);assert(app.view==ui::View::Home);

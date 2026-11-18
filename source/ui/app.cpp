@@ -1,7 +1,9 @@
+#include "localization/localization.hpp"
 #include "ui/app.hpp"
 #include "app_version.hpp"
 #include "ai/bots.hpp"
 #include <algorithm>
+#include <fstream>
 #include <cstdlib>
 #include <utility>
 namespace ui {
@@ -12,20 +14,21 @@ static constexpr Color bg = rgb(20, 25, 36), panel = rgb(32, 40, 54), ink = rgb(
 static const char *modes[] = {"Jugador vs IA", "Dos jugadores", "Practica: deshacer"};
 // The tiny bitmap font does not wrap automatically.
 static void paragraph(Renderer &r, int x, int y, const std::string &text, Color color,
-                      int columns, int lines) {
-    std::string remaining = text;
+                      int columns, int lines, bool literal=false) {
+    std::string remaining = literal?text:localization::translate(text);
     for (int line = 0; line < lines && !remaining.empty(); ++line) {
         size_t length = std::min(remaining.size(), size_t(columns));
         if (length < remaining.size()) {
             size_t space = remaining.rfind(' ', length);
             if (space != std::string::npos && space > 0) length = space;
         }
-        r.text(x, y + line * 11, remaining.substr(0, length), color, 1, columns);
+        r.rawText(x, y + line * 11, remaining.substr(0, length), color, 1, columns);
         remaining.erase(0, length);
         while (!remaining.empty() && remaining.front() == ' ') remaining.erase(0, 1);
     }
 }
 void App::recordCompleted() {
+    syncSecret();
     if (!archiveReady || developerSandbox || progressionActive || openingActive || trainingActive || tournamentActive || !state.session.active ||
         state.session.game.result == chess::Result::Playing) return;
     auto candidate = archiveState;
@@ -242,10 +245,14 @@ void App::message(const std::string &s) {
     noticeFrames = 240;
 }
 void App::init() {
+    currentLanguage=globalLanguage=localization::packageDefault;
+    firstLanguage=profilesEnabled&&!localization::loadLanguage(rootDirectory+"/global-language.dat",globalLanguage);
+    currentLanguage=globalLanguage;localization::setLanguage(currentLanguage);
     audioReady = audio.init();
     if (profilesEnabled) {
         profilesReady = profileManager.init() && profileManager.migrate();
-        view = View::Profiles;
+        view = firstLanguage?View::Language:View::Profiles;
+        if(firstLanguage)focus=currentLanguage==localization::Language::English?1:0;
         if (!profilesReady) message("Perfiles: " + profileManager.error);
         refresh(); lastClockSample = clockNow();
         return;
@@ -266,6 +273,12 @@ void App::loadData() {
     trainingStore.load();
     academyStore.load();
     preferences.load(dataDirectory + "/ui.dat");
+    currentLanguage=globalLanguage;
+    if(!localization::loadLanguage(dataDirectory+"/language.dat",currentLanguage)){
+        if(!std::ifstream(dataDirectory+"/language.dat")&&!std::ifstream(dataDirectory+"/language.dat.bak"))localization::saveLanguage(dataDirectory+"/language.dat",currentLanguage);
+        else message("Archivo de idioma danado; elige de nuevo");
+    }
+    localization::setLanguage(currentLanguage);
     tournamentStore.load(tournamentState);
     archiveReady = archiveStore.load(archiveState);
     if (!archiveReady && !archiveStore.corrupt) {
@@ -286,6 +299,9 @@ void App::loadData() {
     openingReady = openingStore.load();
     if (!openingReady && !openingStore.exists && !openingStore.corrupt) openingReady = openingStore.save();
     openingIndex = openingStore.progress.lastOpening; openingBranch = 0;
+    secretPending=false;spaceState={};spaceReady=spaceStore.load(spaceState);pendingScene=space::Scene::None;unlockFrames=0;
+    if(!spaceReady&&!spaceStore.exists&&!spaceStore.corrupt){space::initialize(spaceState,state.profile.paidId,archiveReady?&archiveState:nullptr);spaceReady=spaceStore.save(spaceState);}
+    syncSecret();
     composerUI = std::make_unique<ComposerUI>(dataDirectory);
     variantsUI = std::make_unique<VariantsUI>(dataDirectory);
     refresh();
@@ -420,7 +436,7 @@ bool App::save() {
     economy::settle(state);
     bool ok = store.save(state);
     lastClockSample = clockNow();
-    if (ok) { recordCompleted(); return true; }
+    if (ok) { recordCompleted(); return !secretPending; }
     state.profile = previousProfile;
     message("Error al guardar en SD");
     return false;
@@ -449,6 +465,7 @@ void App::back() {
     switch (view) {
     case View::ComposerWorkshop: parent = View::Modes; parentRow = 4; break;
     case View::VariantWorkshop: parent = View::Modes; parentRow = 5; break;
+    case View::Language: if(firstLanguage)return; parent=View::Options;parentRow=7;break;
     case View::Openings: parent = View::Modes; parentRow = 3; break;
     case View::OpeningStudy: parent = View::Openings; break;
     case View::Modes: parent = View::Home; break;
@@ -539,7 +556,7 @@ void App::go(View v) {
         v == View::Profiles || v == View::Modes || v == View::Career || v == View::Survival || v == View::Trophies)) leaveProgression();
     view = v;
     if (v == View::Tournament) tournamentSaved = true;
-    focus = 0;
+    focus = v==View::Language&&currentLanguage==localization::Language::English?1:0;
     lastClockSample = clockNow();
 }
 int App::rows() const {
@@ -580,8 +597,9 @@ int App::rows() const {
     case View::ConfirmProfileDelete: return 2;
     case View::Developer:
         return 6;
+    case View::Language: return 2;
     case View::Options:
-        return 7;
+        return 8;
     case View::Preferences:
         return 4;
     case View::Shop:
@@ -600,6 +618,7 @@ int App::rows() const {
     }
 }
 int App::rowY() const {
+    if(view==View::Language)return 96;
     if (view == View::Title)
         return 72;
     if (view == View::Tournament || view == View::Library || view == View::Career || view == View::Survival || view == View::Openings || view == View::OpeningStudy) return 128;
@@ -622,9 +641,11 @@ int App::rowH() const {
     if (view == View::Result)
         return 24;
     if (view == View::Home) return 20;
-    return (view == View::NewGame || view == View::Pause) ? 21 : 24;
+    return (view == View::NewGame || view == View::Pause || view == View::Options) ? 21 : 24;
 }
 void App::startGame() {
+    if(state.session.active&&state.session.game.result!=chess::Result::Playing&&!save())return;
+    if(state.settings.bot==40&&!secretUnlocked()){message("Rival secreto: vence a Byte y Jensen en IA");return;}
     auto old = state;
     hints.cancel();
     hintMove = {};
@@ -762,7 +783,8 @@ void App::showResult() {
     hints.cancel();
     hintMove = {};
     selected = -1;
-    endScene.begin(state.session);
+    endScene.begin(state.session,pendingScene);
+    pendingScene=space::Scene::None;
     if (preferences.reducedMotion) endScene.skip();
     view = View::Result;
     focus = 0;
@@ -800,6 +822,7 @@ void App::requestHint() {
         message("No hay una pista disponible");
 }
 void App::activate() {
+    if(view==View::Language){selectLanguage();return;}
     if (view == View::Openings || view == View::OpeningStudy) { openingAction(); return; }
     if (view == View::Pause && openingActive) {
         if (focus == 0) go(View::Game);
@@ -960,6 +983,7 @@ void App::activate() {
     if (view == View::Bots) {
         if (focus == 0) {
             auto old = state;
+            if(botChoice==40&&!secretUnlocked()){message("Rival secreto: vence a Byte y Jensen en IA");return;}
             state.settings.bot = botChoice;
             state.settings.level = ai::botAt(botChoice).engineLevel;
             if (!commit(old))
@@ -1211,6 +1235,7 @@ void App::activate() {
         return;
     }
     if (view == View::Options) {
+        if(focus==7){go(View::Language);return;}
         if (focus == 6) {
             if (developerEnabled) { developerEnabled = false; message("Developer desactivado"); }
             else { developerCode = {}; developerDigit = 0; go(View::DeveloperPassword); }
@@ -1237,6 +1262,8 @@ void App::activate() {
     }
 }
 void App::update(Input in, int64_t elapsedMs) {
+    localization::setLanguage(currentLanguage);
+    if(unlockFrames>0)--unlockFrames;
     battery.update(uint64_t(std::chrono::duration_cast<std::chrono::milliseconds>(clockNow().time_since_epoch()).count()));
     const View entryView = view;
     struct ScopedClockMode {
@@ -1335,7 +1362,7 @@ void App::update(Input in, int64_t elapsedMs) {
     }
     if ((in.keys & Select) && view == View::Stats) { go(View::AdvancedStats); return; }
     if (view == View::AdvancedStats && (in.keys & (Left | Right))) {
-        statisticsBot = (statisticsBot + ((in.keys & Left) ? 39 : 1)) % 40;
+        statisticsBot = (statisticsBot + ((in.keys & Left) ? ai::botCount-1 : 1)) % ai::botCount;
     }
     if (view == View::Library && !archiveState.games.empty() && (in.keys & (Left | Right))) {
         libraryIndex = (libraryIndex + ((in.keys & Left) ? int(archiveState.games.size()) - 1 : 1)) % int(archiveState.games.size());
@@ -1485,11 +1512,12 @@ void App::update(Input in, int64_t elapsedMs) {
             activate();
     }
 }
-void App::button(Renderer &r, int x, int y, int w, const std::string &label, bool active) {
+void App::button(Renderer &r, int x, int y, int w, const std::string &label, bool active, bool literalLabel) {
     const int height = view == View::Home ? 19 : 21;
     r.rect(x, y, w, height, active ? rgb(65, 71, 75) : panel);
     r.border(x, y, w, height, active ? gold : rgb(55, 65, 78));
-    r.text(x + 8, y + 7, label, active ? gold : ink, 1, (w - 16) / 6);
+    if(literalLabel)r.rawText(x+8,y+7,label,active?gold:ink,1,(w-16)/6);
+    else r.text(x + 8, y + 7, label, active ? gold : ink, 1, (w - 16) / 6);
 }
 int App::portraitExpression() const {
     if (view == View::Bots)
@@ -1597,7 +1625,7 @@ void App::board(Renderer &r) {
     } else {
         r.portrait(opponent.portraitIndex, expression, 284, 8, 2);
         r.border(282, 6, 68, 68, gold);
-        r.text(252, 83, opponent.name, ink, 1, 23);
+        r.rawText(252, 83, opponent.name, ink, 1, 23);
         r.text(252, 97, std::string("RANGO: ") + opponent.strengthLabel, gold, 1, 23);
     }
     r.rect(252, 110, 136, 1, muted);
@@ -1660,14 +1688,17 @@ void App::bottom(Renderer &r) {
         return;
     }
     const bool choosingProfile = view == View::Profiles || view == View::ProfileSlot || view == View::ConfirmProfileDelete;
-    r.text(12, 12, choosingProfile ? "PERFILES" : developerSandbox ? "DEVELOPER / TEMPORAL" : state.profile.name, ink, 1, 24);
+    r.rawText(12, 12, choosingProfile ? localization::translate("PERFILES") : developerSandbox ? localization::translate("DEVELOPER / TEMPORAL") : state.profile.name, ink, 1, 24);
     if (!choosingProfile) r.text(202, 12, std::to_string(state.profile.coins) + " CC", gold, 1, 18);
     r.rect(12, 29, 296, 1, muted);
     auto menu = [&](const std::vector<std::string> &labels) {
         for (int i = 0; i < int(labels.size()); ++i)
             button(r, 12, rowY() + i * rowH(), 296, labels[i], i == focus);
     };
-    if (view == View::Openings || view == View::OpeningStudy) {
+    if(view==View::Language){
+        r.rawText(12,48,firstLanguage?"SELECT LANGUAGE / SELECCIONAR IDIOMA":localization::translate("SELECCIONAR IDIOMA"),gold,1,49);
+        button(r,12,96,296,"Español",focus==0);button(r,12,120,296,"English",focus==1);
+    } else if (view == View::Openings || view == View::OpeningStudy) {
         drawOpeningBottom(r);
     } else if (view == View::Modes || view == View::Career || view == View::Survival || view == View::ConfirmEndAttempt || view == View::Trophies) {
         drawProgressionBottom(r);
@@ -1675,7 +1706,7 @@ void App::bottom(Renderer &r) {
         for (int i = 0; i < 3; ++i) {
             const auto &slot = profileManager.slots[size_t(i)];
             button(r, 12, rowY() + i * rowH(), 296,
-                std::to_string(i + 1) + ". " + (slot.occupied ? slot.name : "Vacio / crear perfil"), i == focus);
+                std::to_string(i + 1) + ". " + (slot.occupied ? slot.name : localization::translate("Vacio / crear perfil")), i == focus,true);
 
         }
         button(r,12,rowY()+3*rowH(),296,activeProfile >= 0 ? "Volver al jugador actual" : "Elige una ranura para comenzar",focus==3);
@@ -1684,7 +1715,7 @@ void App::bottom(Renderer &r) {
         const auto &slot = profileManager.slots[size_t(profileChoice)];
         menu({slot.occupied ? "Jugar con este perfil" : "Crear perfil nuevo",
               "Renombrar perfil", "Cambiar avatar", "Eliminar perfil...", "Volver"});
-        r.text(12, 177, "Ranura " + std::to_string(profileChoice + 1) + ": " + (slot.occupied ? slot.name : "vacia"), gold,1,49);
+        r.rawText(12,177,localization::translate("Ranura ")+std::to_string(profileChoice+1)+": "+(slot.occupied?slot.name:localization::translate("vacia")),gold,1,49);
         paragraph(r,12,195,"Para renombrar, entra primero en el perfil. Los borrados conservan una copia de recuperacion.",muted,49,2);
     } else if (view == View::ConfirmProfileDelete) {
         r.text(12,65,"ELIMINAR ESTE PERFIL?",gold,1,49);
@@ -1724,7 +1755,7 @@ void App::bottom(Renderer &r) {
                    " PAG",
                muted);
         r.portrait(opponent.portraitIndex, portraitExpression(), 16, 66, 1);
-        r.text(62, 64, opponent.name, ink, 1, 40);
+        r.rawText(62, 64, opponent.name, ink, 1, 40);
         r.text(62, 78, std::string("Rango ") + opponent.strengthLabel, gold);
         r.text(62, 93,
                opponent.referenceElo > 0
@@ -1741,6 +1772,8 @@ void App::bottom(Renderer &r) {
             r.text(x + 20, 147, std::to_string(id + 1), id == botChoice ? gold : muted);
         }
         r.text(12, 160,
+               botChoice==40&&!secretUnlocked()?"Rival secreto: vence a Byte y Jensen en IA":
+               botChoice==40?"INVITADO ESPECIAL / FICTICIO":
                opponent.source    ? "Elo de referencia; motor propio."
                : opponent.tribute ? "Homenaje. No imita su fuerza real."
                                   : "Rangos de juego, sin ELO medido.",
@@ -1880,7 +1913,7 @@ void App::bottom(Renderer &r) {
         r.text(12, 42, "< " + std::to_string(lessonIndex + 1) + "/" + std::to_string(lessonCount()) + " > " + name, gold, 1, 49);
         const int mentor = campaign ? training::chapter(lessonIndex).botId : exercise.botId;
         r.portrait(mentor, 0, 16, 64, 2);
-        r.text(90, 67, ai::botAt(mentor).name, ink, 1, 35);
+        r.rawText(90, 67, ai::botAt(mentor).name, ink, 1, 35);
         paragraph(r, 90, 86, campaign ? "Vence para abrir la siguiente etapa." : exercise.description, muted, 35, 4);
         r.text(12, 139, trainingStore.progress.completed(trainingKind, lessonIndex) ? "COMPLETADO" : trainingStore.progress.unlocked(trainingKind, lessonIndex) ? "DISPONIBLE" : "COMPLETA LA ETAPA ANTERIOR", gold, 1, 49);
         menu({"Comenzar", "Volver"});
@@ -1921,7 +1954,7 @@ void App::bottom(Renderer &r) {
               std::string("Efectos: ") + (state.settings.sound ? "activados" : "desactivados"),
               std::string("Musica: ") + (state.settings.music ? "activada" : "desactivada"),
               "Restaurar estilo clasico", "Volver", "Accesibilidad / informacion",
-              developerEnabled ? "Developer: activo (desactivar)" : "Developer: bloqueado"});
+              developerEnabled ? "Developer: activo (desactivar)" : "Developer: bloqueado", "Idioma / Language"});
         r.text(12, 213, audioReady ? "AUDIO DSP DISPONIBLE" : "SIN DSP: CONTINUA EN SILENCIO",
                muted, 1, 49);
     } else if (view == View::DeveloperPassword) {
@@ -2005,6 +2038,7 @@ void App::drawBattery(Renderer &r) {
     if(battery.warning()){r.rect(0,211,320,11,panel);r.text(6,213,"BATERIA BAJA - GUARDA TU PROGRESO",gold,1,49);}
 }
 void App::draw(Renderer &r) {
+    localization::setLanguage(currentLanguage);
     r.frame();
     if ((view == View::ComposerWorkshop && composerUI) || (view == View::VariantWorkshop && variantsUI)) {
         const int skin=state.profile.equipped[1]==5?1:state.profile.equipped[1]==6?2:0;
@@ -2022,7 +2056,7 @@ void App::draw(Renderer &r) {
             r.rect(x,62,122,142,panel);
             if (slot.occupied) r.portrait(slot.avatar,0,x+29,76,2);
             r.text(x+5,151,"PERFIL " + std::to_string(i+1),gold,1,18);
-            paragraph(r,x+5,170,slot.occupied ? slot.name : "Ranura vacia",ink,18,2);
+            paragraph(r,x+5,170,slot.occupied ? slot.name : localization::translate("Ranura vacia"),ink,18,2,true);
             if ((view==View::Profiles ? focus : profileChoice)==i) r.border(x,62,122,142,blue);
         }
     } else if (view == View::Tournament) {
@@ -2048,7 +2082,7 @@ void App::draw(Renderer &r) {
                 if (index == tournamentState.activeIndex) r.border(x, y, 124, 38, blue);
             }
         }
-    } else if (view == View::Title || view == View::Home || view == View::Training || view == View::Lessons || view == View::TrainingEnd || view == View::Library || view == View::AdvancedStats || view == View::ConfirmDelete || view == View::Openings || view == View::Profiles || view == View::ProfileSlot || view == View::ConfirmProfileDelete)
+    } else if (view == View::Language || view == View::Title || view == View::Home || view == View::Training || view == View::Lessons || view == View::TrainingEnd || view == View::Library || view == View::AdvancedStats || view == View::ConfirmDelete || view == View::Openings || view == View::Profiles || view == View::ProfileSlot || view == View::ConfirmProfileDelete)
         drawTitleTop(r, preferences.reducedMotion ? 0 : ticks);
     else if (view == View::Help)
         drawHelpTop(r, helpPage);
@@ -2059,6 +2093,7 @@ void App::draw(Renderer &r) {
         board(r);
     bottom(r);
     drawBattery(r);
+    drawUnlock(r);
     r.end();
 }
 } // namespace ui

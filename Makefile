@@ -6,11 +6,15 @@ HOST_CXX ?= clang++
 PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
 VERSION := $(shell sed -n 's/.*version = "\([^"]*\)";.*/\1/p' include/app_version.hpp)
 COMMON := source/chess/clock.cpp source/chess/chess.cpp source/ai/search.cpp source/ai/styles.cpp source/ai/bots.cpp source/economy/profile.cpp source/storage/store.cpp source/storage/profiles.cpp source/progression/progression.cpp source/openings/openings.cpp source/variants/variants.cpp source/composer/composer.cpp source/platform/battery.cpp source/localization/localization.cpp
-APP := $(COMMON) source/space/secret.cpp source/ai/worker.cpp source/ai/hints.cpp source/ui/end_scene.cpp source/ui/onboarding.cpp source/ui/review.cpp source/training/campaign.cpp source/training/academy.cpp source/graphics/renderer.cpp source/graphics/audio.cpp source/tournament/tournament.cpp source/archive/archive.cpp source/ui/preferences.cpp source/ui/developer.cpp source/ui/profiles.cpp source/ui/progression.cpp source/ui/openings.cpp source/ui/variants_ui.cpp source/ui/composer_ui.cpp source/ui/app.cpp source/main.cpp
+APP := $(COMMON) source/space/secret.cpp source/ai/worker.cpp source/ai/hints.cpp source/ui/end_scene.cpp source/ui/onboarding.cpp source/ui/review.cpp source/training/campaign.cpp source/training/academy.cpp source/graphics/renderer.cpp source/graphics/audio.cpp source/tournament/tournament.cpp source/archive/archive.cpp source/ui/preferences.cpp source/ui/developer.cpp source/ui/profiles.cpp source/ui/progression.cpp source/ui/openings.cpp source/ui/variants_ui.cpp source/ui/composer_ui.cpp source/ui/space_language.cpp source/ui/app.cpp source/main.cpp
 OBJS := $(patsubst source/%.cpp,build/3ds/%.o,$(APP))
 HEADERS := $(shell find include -name '*.hpp' -o -name '*.inc')
 ARCH := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -mword-relocations
-CPPFLAGS := -D__3DS__ -Iinclude -Iassets/generated -Iassets/portraits -I$(DEVKITPRO)/libctru/include
+DEFAULT_LANGUAGE ?= ES
+ifneq ($(filter $(DEFAULT_LANGUAGE),ES EN),$(DEFAULT_LANGUAGE))
+$(error DEFAULT_LANGUAGE must be ES or EN)
+endif
+CPPFLAGS := $(if $(filter EN,$(DEFAULT_LANGUAGE)),-DDEFAULT_LANGUAGE_EN) -D__3DS__ -Iinclude -Iassets/generated -Iassets/portraits -I$(DEVKITPRO)/libctru/include
 CXXFLAGS := $(ARCH) -std=gnu++17 -O2 -g -Wall -Wextra -ffunction-sections -fdata-sections -fno-exceptions -fno-rtti
 LDFLAGS := $(ARCH) -specs=tools/3dsx-armv6k.specs -Wl,--gc-sections -Wl,-Map,build/3ds-chess.map -L$(DEVKITPRO)/libctru/lib
 HOSTFLAGS := -std=c++17 -O2 -g -Wall -Wextra -pthread -Iinclude -Iassets/generated -Iassets/portraits
@@ -19,14 +23,14 @@ all: dist/3ds-chess.3dsx
 check-tools:
 	@test -x '$(ARM_CXX)' || (echo 'Install devkitPro 3ds-dev: https://devkitpro.org/wiki/Getting_Started'; exit 1)
 	@test -f '$(DEVKITPRO)/libctru/lib/libcitro2d.a' || (echo 'Citro2D missing'; exit 1)
-build/3ds/%.o: source/%.cpp $(HEADERS) assets/generated/atlas.hpp assets/portraits/portraits.hpp | check-tools
+build/3ds/%.o: source/%.cpp build/language.stamp $(HEADERS) assets/generated/atlas.hpp assets/portraits/portraits.hpp | check-tools
 	@mkdir -p '$(@D)'
 	'$(ARM_CXX)' $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -c '$<' -o '$@'
 build/3ds-chess.elf: $(OBJS) Makefile tools/3dsx-armv6k.specs
 	'$(ARM_CXX)' $(LDFLAGS) $(OBJS) -lcitro2d -lcitro3d -lctru -lm -o '$@'
-dist/3ds-chess.smdh: assets/generated/icon.png Makefile include/app_version.hpp
+dist/3ds-chess.smdh: assets/generated/icon.png Makefile include/app_version.hpp build/language.stamp
 	@mkdir -p dist
-	'$(DEVKITPRO)/tools/bin/smdhtool' --create '3DS Chess' '$(VERSION) / 40 rivales' 'Pollitopio' 'assets/generated/icon.png' '$@'
+	'$(DEVKITPRO)/tools/bin/smdhtool' --create '3DS Chess' '$(VERSION) / $(DEFAULT_LANGUAGE) / 41 rivals' 'Pollitopio' 'assets/generated/icon.png' '$@'
 dist/3ds-chess.3dsx: build/3ds-chess.elf dist/3ds-chess.smdh
 	'$(DEVKITPRO)/tools/bin/3dsxtool' '$<' '$@' --smdh=dist/3ds-chess.smdh
 build/test_polish_ui: $(APP:source/main.cpp=) tests/test_polish_ui.cpp $(HEADERS) assets/generated/atlas.hpp assets/portraits/portraits.hpp
@@ -297,6 +301,32 @@ sanitize-remaining:
 	$(HOST_CXX) $(HOSTFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer $(APP:source/main.cpp=) tests/test_composer_ui.cpp -o build/sanitize_composer_ui
 	./build/sanitize_composer_ui
 
+.PHONY: FORCE
+build/language.stamp: FORCE
+	@mkdir -p build
+	@echo '$(DEFAULT_LANGUAGE)' > build/language.next
+	@cmp -s build/language.next $@ || cp build/language.next $@
+	@rm -f build/language.next
+
+build/test_localization: $(APP:source/main.cpp=) tests/test_localization.cpp $(HEADERS)
+	$(HOST_CXX) $(HOSTFLAGS) $(APP:source/main.cpp=) tests/test_localization.cpp -o '$@'
+build/test_space_ui: $(APP:source/main.cpp=) tests/test_space_ui.cpp $(HEADERS)
+	$(HOST_CXX) $(HOSTFLAGS) $(APP:source/main.cpp=) tests/test_space_ui.cpp -o '$@'
+build/test_space_secret: $(APP:source/main.cpp=) tests/test_space_secret.cpp $(HEADERS)
+	$(HOST_CXX) $(HOSTFLAGS) $(APP:source/main.cpp=) tests/test_space_secret.cpp -o '$@'
+test-space-language: build/test_localization build/test_space_ui build/test_space_secret
+	./build/test_localization
+	./build/test_space_ui
+	./build/test_space_secret
+	$(PYTHON) tests/test_content_catalog.py
+	$(PYTHON) tests/test_localization_catalog.py
+test: test-space-language
+sanitize-space-language:
+	$(HOST_CXX) $(HOSTFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer $(APP:source/main.cpp=) tests/test_localization.cpp -o build/space-language/sanitize_localization
+	./build/space-language/sanitize_localization
+	$(HOST_CXX) $(HOSTFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer $(APP:source/main.cpp=) tests/test_space_ui.cpp -o build/space-language/sanitize_space_ui
+	./build/space-language/sanitize_space_ui
+
 build/test_translation: source/localization/localization.cpp tests/test_translation.cpp $(HEADERS)
 	$(HOST_CXX) $(HOSTFLAGS) source/localization/localization.cpp tests/test_translation.cpp -o '$@'
 test-translations: build/test_translation
@@ -305,11 +335,8 @@ test-translations: build/test_translation
 	$(PYTHON) tests/test_content_catalog.py
 test: test-translations
 
-build/test_space_secret: $(APP:source/main.cpp=) tests/test_space_secret.cpp $(HEADERS)
-	$(HOST_CXX) $(HOSTFLAGS) $(APP:source/main.cpp=) tests/test_space_secret.cpp -o '$@'
 build/test_space_scene: $(COMMON) source/ui/end_scene.cpp source/graphics/renderer.cpp tests/test_space_scene.cpp $(HEADERS) assets/generated/atlas.hpp assets/portraits/portraits.hpp
 	$(HOST_CXX) $(HOSTFLAGS) $(COMMON) source/ui/end_scene.cpp source/graphics/renderer.cpp tests/test_space_scene.cpp -o '$@'
-test-space-modules: build/test_space_secret build/test_space_scene
-	./build/test_space_secret
+test-space-scenes: build/test_space_scene
 	./build/test_space_scene
-test: test-space-modules
+test: test-space-scenes

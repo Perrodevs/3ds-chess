@@ -24,7 +24,8 @@ bool formatted(const Entry&e,const std::string&text,std::string&out){
   if(pattern[p]=='%'&&(pattern.compare(p,2,"%d")==0||pattern.compare(p,4,"%02d")==0)){
    size_t begin=i;if(i<text.size()&&(text[i]=='-'||text[i]=='+'))++i;size_t digits=i;
    while(i<text.size()&&text[i]>='0'&&text[i]<='9')++i;
-   if(i==digits)return false;args.push_back(text.substr(begin,i-begin));p+=pattern.compare(p,2,"%d")==0?2:4;
+   if(i==digits)return false;
+   args.push_back(text.substr(begin,i-begin));p+=pattern.compare(p,2,"%d")==0?2:4;
   }else{if(i>=text.size()||pattern[p++]!=text[i++])return false;}
  }
  if(i!=text.size()||args.empty())return false;
@@ -61,5 +62,6 @@ size_t glyphCount(const std::string&s){size_t i=0,n=0;while(i<s.size()){nextCode
 int fontIndex(uint32_t c){if(c>=32&&c<=126)return int(c-32);static constexpr uint32_t extra[]={0xe1,0xe9,0xed,0xf3,0xfa,0xfc,0xf1,0xc1,0xc9,0xcd,0xd3,0xda,0xdc,0xd1,0xbf,0xa1};for(int i=0;i<16;++i)if(c==extra[i])return 95+i;return '?'-32;}
 bool loadLanguage(const std::string&p,Language&l){Language c;if(!read(p,c)&&!read(p+".bak",c))return false;l=c;return true;}
 bool saveLanguage(const std::string&p,Language l){if(l!=Language::Spanish&&l!=Language::English)return false;std::string s="LANG1";s+=l==Language::English?'E':'S';s+=char(s[5]^0x55);s+='\n';auto tmp=p+".tmp";FILE*f=fopen(tmp.c_str(),"wb");if(!f)return false;bool ok=fwrite(s.data(),1,s.size(),f)==s.size();if(fflush(f)||fsync(fileno(f)))ok=false;if(fclose(f))ok=false;Language prior;if(ok&&read(p,prior)){std::ifstream from(p,std::ios::binary);std::string old((std::istreambuf_iterator<char>(from)),{});FILE*b=fopen((p+".bak.tmp").c_str(),"wb");if(!b)ok=false;else{bool good=fwrite(old.data(),1,old.size(),b)==old.size();if(fflush(b)||fsync(fileno(b)))good=false;if(fclose(b))good=false;ok=good&&rename((p+".bak.tmp").c_str(),(p+".bak").c_str())==0;}}
- if(ok&&rename(tmp.c_str(),p.c_str())==0)return true;remove(tmp.c_str());return false;}
+ if(ok&&rename(tmp.c_str(),p.c_str())==0)return true;
+ remove(tmp.c_str());return false;}
 }

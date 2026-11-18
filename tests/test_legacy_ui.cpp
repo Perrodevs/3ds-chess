@@ -8,7 +8,7 @@ static void key(ui::App &a, unsigned k) { a.update({k,false,0,0},0); }
 static void tap(ui::App &a, int y, int x=50) { a.update({0,true,x,y},0); }
 static void unlock(ui::App &a) {
     tap(a,130); assert(a.view==ui::View::Options);
-    tap(a,190); assert(a.view==ui::View::DeveloperPassword);
+    tap(a,172); assert(a.view==ui::View::DeveloperPassword);
     key(a,ui::A); assert(a.view==ui::View::DeveloperPassword); // Wrong code.
     for (int i=0;i<4;++i) {
         for(int n=0;n<i+1;++n) key(a,ui::Up);
@@ -28,7 +28,7 @@ int main() {
     char path[]="/tmp/chess-legacy-ui-XXXXXX"; assert(mkdtemp(path));
     std::string root=path;
     {
-        ui::App a(root+"/developer"); a.init(); key(a,ui::A);
+        ui::App a(root+"/developer"); a.init();if(a.view==ui::View::Language) a.update({ui::A,false,0,0},0); key(a,ui::A);
         unlock(a); begin(a);
         const auto initialFen=a.state.session.game.position.fen();
         const auto coins=a.state.profile.coins;
@@ -48,12 +48,12 @@ int main() {
         a.suspend(); a.resume(); assert(store.load(disk)); assert(disk.profile.coins==coins && disk.profile.unlocked==1);
         key(a,ui::Start); tap(a,69); // Save and menu.
         assert(a.view==ui::View::Home && a.state.profile.coins==coins && a.state.profile.unlocked==1);
-        tap(a,130); tap(a,190); // Disable; SELECT retains the original history feature.
+        tap(a,130); tap(a,172); // Disable; SELECT retains the original history feature.
         key(a,ui::B); tap(a,68); key(a,ui::Select); assert(a.view==ui::View::Review);
     }
     {
         const auto directory=root+"/profiles";
-        ui::App a(directory,true); a.init(); assert(a.view==ui::View::Profiles);
+        ui::App a(directory,true); a.init();if(a.view==ui::View::Language) a.update({ui::A,false,0,0},0); assert(a.view==ui::View::Profiles);
         key(a,ui::B); assert(a.view==ui::View::Profiles);
         tap(a,48); assert(a.view==ui::View::ProfileSlot); tap(a,48);
         assert(a.view==ui::View::Title); key(a,ui::A);

@@ -6,6 +6,15 @@ releases. No historical commits or version tags are inferred from those reports.
 
 ## Unreleased
 
+### Added — profile UI integration
+
+- Add first-run language selection and independent per-profile language settings;
+  update the interface without changing notation or game state.
+- Integrate secret-opponent selection, one-shot unlock banner and persisted result
+  scenes; keep empty selector slots inert.
+- Preserve literal user names and FEN; translate before wrapping and centering.
+- Retry failed secret-progress writes before another game, without duplicate payouts.
+
 ### Added — secret rival modules
 
 - Register Elon Musk at stable ID40 with nine fictional dialogue events, an

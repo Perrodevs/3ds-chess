@@ -68,7 +68,8 @@ int main() {
                 SwkbdState keyboard;
                 swkbdInit(&keyboard, SWKBD_TYPE_NORMAL, 2, 24);
                 const auto prompt=app.workshopTextPrompt(), initial=app.workshopTextValue();
-                swkbdSetHintText(&keyboard,prompt.c_str());
+                const auto localizedPrompt=localization::translate(prompt);
+                swkbdSetHintText(&keyboard,localizedPrompt.c_str());
                 swkbdSetInitialText(&keyboard,initial.c_str());
                 char text[128]{};
                 const bool confirmed=swkbdInputText(&keyboard,text,sizeof(text))==SWKBD_BUTTON_CONFIRM;
@@ -78,7 +79,8 @@ int main() {
             if (app.wantsName) {
                 SwkbdState keyboard;
                 swkbdInit(&keyboard, SWKBD_TYPE_NORMAL, 2, 24);
-                swkbdSetHintText(&keyboard, "Nombre del jugador (sin acentos)");
+                const auto nameHint=localization::translate("Nombre del jugador (sin acentos)");
+                swkbdSetHintText(&keyboard,nameHint.c_str());
                 swkbdSetInitialText(&keyboard, app.state.profile.name.c_str());
                 char name[128]{};
                 if (swkbdInputText(&keyboard, name, sizeof(name)) == SWKBD_BUTTON_CONFIRM)

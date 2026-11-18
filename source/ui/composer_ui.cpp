@@ -1,3 +1,4 @@
+#include "localization/localization.hpp"
 #include "ui/composer_ui.hpp"
 #include "ui/app.hpp"
 #include <algorithm>
@@ -262,7 +263,7 @@ void ComposerUI::drawBoard(graphics::Renderer&r,int skin){
     for(int sq=0;sq<64;++sq){int x=12+sq%8*28,y=8+(7-sq/8)*28;r.rect(x,y,28,28,((sq/8+sq%8)&1)?graphics::rgb(179,169,130):graphics::rgb(88,86,96));r.piece(p.board[size_t(sq)],x+2,y+2,skin);if(sq==cursor)r.border(x+1,y+1,26,26,gold,2);if(sq==selected)r.border(x+3,y+3,22,22,blue,2);}
     r.text(248,12,"TALLER",gold,2,11);r.text(248,42,p.side==1?"Turno blanco":"Turno negro",ink,1,23);
     r.text(248,62,"LOCAL / SIN PREMIOS",dim,1,23);
-    const auto err=composer::validate(p);
+    const auto err=localization::translate(composer::validate(p));
     if(!err.empty()){r.text(248,92,"BORRADOR",gold,1,23);r.text(248,110,err,dim,1,23);if(err.size()>23)r.text(248,122,err.substr(23),dim,1,23);}
     else r.text(248,92,"POSICION VALIDA",blue,1,23);
     if(current==Screen::Record||current==Screen::RecordMenu){r.text(248,144,"Solucion: "+std::to_string(game.moves.size())+"/5",ink,1,23);r.text(248,166,composer::goalName(puzzle.goal),dim,1,23);}
@@ -281,8 +282,8 @@ void ComposerUI::draw(graphics::Renderer&r,int skin){
     if(current==Screen::Proof){r.text(12,70,"COMPROBANDO SIN BLOQUEAR CONTROLES",ink,1,49);r.text(12,96,"Busqueda limitada a 50000 nodos.",dim,1,49);r.text(12,122,"B: cancelar. No modifica la partida normal.",dim,1,49);return;}
     const auto menu=labels();const int h=rowHeight();for(size_t i=0;i<menu.size();++i){int y=46+int(i)*h;r.rect(12,y,296,h-2,i==size_t(focus)?graphics::rgb(70,65,50):panel);if(i==size_t(focus))r.border(12,y,296,h-2,gold);r.text(18,y+(h-8)/2,menu[i],ink,1,47);}
     int infoY=46+int(menu.size())*h+4;
-    if(current==Screen::Positions&&!store.data.positions.empty()){index=std::clamp(index,0,int(store.data.positions.size())-1);const auto&p=store.data.positions[size_t(index)];r.text(12,infoY,std::to_string(index+1)+"/"+std::to_string(store.data.positions.size())+" "+p.name,gold,1,49);r.text(12,infoY+14,p.fen,dim,1,49);}
-    else if((current==Screen::Puzzles||current==Screen::PuzzleMenu)&&!store.data.puzzles.empty()){index=std::clamp(index,0,int(store.data.puzzles.size())-1);const auto&p=store.data.puzzles[size_t(index)];r.text(12,infoY,p.name+" / "+status(p.validation),gold,1,49);r.text(12,infoY+14,"Intentos "+std::to_string(p.attempts)+" / completados "+std::to_string(p.completed),dim,1,49);}
+    if(current==Screen::Positions&&!store.data.positions.empty()){index=std::clamp(index,0,int(store.data.positions.size())-1);const auto&p=store.data.positions[size_t(index)];r.rawText(12,infoY,std::to_string(index+1)+"/"+std::to_string(store.data.positions.size())+" "+p.name,gold,1,49);r.rawText(12,infoY+14,p.fen,dim,1,49);}
+    else if((current==Screen::Puzzles||current==Screen::PuzzleMenu)&&!store.data.puzzles.empty()){index=std::clamp(index,0,int(store.data.puzzles.size())-1);const auto&p=store.data.puzzles[size_t(index)];r.rawText(12,infoY,p.name+" / "+localization::translate(status(p.validation)),gold,1,49);r.text(12,infoY+14,"Intentos "+std::to_string(p.attempts)+" / completados "+std::to_string(p.completed),dim,1,49);}
     else if(current==Screen::Goal)r.text(12,infoY,"Mate: prueba todas las defensas, no solo la linea.",dim,1,49);
     else if(current==Screen::DraftResult)r.text(12,infoY,status(puzzle.validation),gold,1,49);
     r.text(12,227,"A: ELEGIR   B: VOLVER",dim,1,49);

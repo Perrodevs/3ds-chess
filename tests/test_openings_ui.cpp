@@ -15,7 +15,7 @@ static void hintMove(ui::App&a){
 }
 int main(){
     char path[]="/tmp/chess-openings-ui-XXXXXX";assert(mkdtemp(path));const std::string root=path;
-    ui::App a(root,true);a.init();tap(a,48);tap(a,48);key(a,ui::A);
+    ui::App a(root,true);a.init();if(a.view==ui::View::Language) a.update({ui::A,false,0,0},0);tap(a,48);tap(a,48);key(a,ui::A);
     tap(a,48);tap(a,173);assert(a.view==ui::View::Game);
     const auto normalId=a.state.session.id;const auto normalFen=a.state.session.game.position.fen();
     key(a,ui::Start);tap(a,69);assert(a.view==ui::View::Home);

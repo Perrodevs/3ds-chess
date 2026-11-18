@@ -1,3 +1,4 @@
+#include "localization/localization.hpp"
 #include "ui/onboarding.hpp"
 #include "chess/chess.hpp"
 #include <algorithm>
@@ -18,7 +19,8 @@ int validPage(int page) {
 }
 void centered(Renderer &r, int y, const std::string &text, Color color, int scale = 1,
               int width = 400) {
-    r.text((width - int(text.size()) * 6 * scale) / 2, y, text, color, scale);
+    const auto translated=localization::translate(text);
+    r.rawText((width - int(localization::glyphCount(translated)) * 6 * scale) / 2, y, translated, color, scale);
 }
 void smallPiece(Renderer &r, int piece, int square) {
     if (!piece)
@@ -58,7 +60,8 @@ void boardExample(Renderer &r, bool mate) {
 void nav(Renderer &r, int x, int width, const std::string &label, Color color) {
     r.rect(x, 198, width, 21, panel);
     r.border(x, 198, width, 21, color);
-    r.text(x + (width - int(label.size()) * 6) / 2, 205, label, color);
+    const auto translated=localization::translate(label);
+    r.rawText(x+(width-int(localization::glyphCount(translated))*6)/2,205,translated,color);
 }
 } // namespace
 
@@ -81,7 +84,7 @@ void drawTitleTop(Renderer &r, uint32_t ticks) {
     r.text(188, 44, "CHESS", ink, 4);
     centered(r, 88, "TU PROXIMA JUGADA EMPIEZA AQUI", muted);
     r.rect(119, 109, 162, 1, gold);
-    centered(r, 120, "40 RIVALES. A TU RITMO.", ink);
+    centered(r, 120, "41 RIVALES. A TU RITMO.", ink);
     const int phase = int(ticks % 120), bob = (phase < 60 ? phase : 120 - phase) / 15;
     r.image((chess::Queen - 1) * 16, 64, 12, 12, 28, 108 + bob, 4);
     r.image((chess::Queen - 1) * 16, 80, 12, 12, 324, 112 - bob, 4);

@@ -8,7 +8,7 @@
 #include <unistd.h>
 static void key(ui::App &a,unsigned k){a.update({k,false,0,0},0);}
 static void tap(ui::App &a,int y,int x=50){a.update({0,true,x,y},0);}
-static void create(ui::App &a){a.init();assert(a.view==ui::View::Profiles);tap(a,48);tap(a,48);assert(a.view==ui::View::Title);key(a,ui::A);}
+static void create(ui::App &a){a.init();if(a.view==ui::View::Language) a.update({ui::A,false,0,0},0);assert(a.view==ui::View::Profiles);tap(a,48);tap(a,48);assert(a.view==ui::View::Title);key(a,ui::A);}
 static void modes(ui::App &a){assert(a.view==ui::View::Home);key(a,ui::Select);assert(a.view==ui::View::Modes);}
 static chess::Game mate(const chess::Game &initial) {
     auto game=initial;
@@ -50,7 +50,7 @@ int main(){
         assert(a.save());
     }
     {
-        ui::App a(root+"/game",true);a.init();tap(a,48);tap(a,48);key(a,ui::A);
+        ui::App a(root+"/game",true);a.init();if(a.view==ui::View::Language) a.update({ui::A,false,0,0},0);tap(a,48);tap(a,48);key(a,ui::A);
         modes(a);tap(a,48);tap(a,135);assert(a.view==ui::View::Career); // Survival still active, no overwrite.
         key(a,ui::B);tap(a,72);tap(a,135);assert(a.view==ui::View::Game);
         key(a,ui::Start);tap(a,69);modes(a);tap(a,72);tap(a,160);assert(a.view==ui::View::ConfirmEndAttempt);
@@ -69,15 +69,15 @@ int main(){
         progression::Store progressionStore(slot+"/progression.dat");assert(progressionStore.save(earned));
         // Fail payout persistence while keeping the completed mode result committed.
         std::filesystem::create_directory(slot+"/profile.dat.tmp");
-        {ui::App a(folder,true);a.init();tap(a,48);tap(a,48);assert(a.state.profile.coins==0);}
+        {ui::App a(folder,true);a.init();if(a.view==ui::View::Language) a.update({ui::A,false,0,0},0);tap(a,48);tap(a,48);assert(a.state.profile.coins==0);}
         std::filesystem::remove(slot+"/profile.dat.tmp");
-        for(int repeat=0;repeat<3;++repeat){ui::App a(folder,true);a.init();tap(a,48);tap(a,48);
+        for(int repeat=0;repeat<3;++repeat){ui::App a(folder,true);a.init();if(a.view==ui::View::Language) a.update({ui::A,false,0,0},0);tap(a,48);tap(a,48);
             assert(a.state.profile.coins==150&&a.state.profile.legacyCoinsClaimed==150);
             assert(a.state.profile.unlocked&(1u<<2));assert(a.save());}
         economy::State paid;storage::Store real(slot);assert(real.load(paid));assert(paid.profile.completed==0&&paid.profile.coins==150);
         // Corrupt the sidecar independently; the real profile must still load.
         {std::ofstream f(slot+"/progression.dat");f<<"bad";}{std::ofstream f(slot+"/progression.dat.bak");f<<"bad";}
-        {ui::App a(folder,true);a.init();tap(a,48);tap(a,48);key(a,ui::A);modes(a);tap(a,48);tap(a,135);
+        {ui::App a(folder,true);a.init();if(a.view==ui::View::Language) a.update({ui::A,false,0,0},0);tap(a,48);tap(a,48);key(a,ui::A);modes(a);tap(a,48);tap(a,135);
             assert(a.view==ui::View::Career&&a.state.profile.coins==150);assert(a.save());}
         assert(std::filesystem::file_size(slot+"/progression.dat")==3);
     }
