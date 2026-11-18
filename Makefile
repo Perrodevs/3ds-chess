@@ -6,7 +6,7 @@ HOST_CXX ?= clang++
 PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
 VERSION := $(shell sed -n 's/.*version = "\([^"]*\)";.*/\1/p' include/app_version.hpp)
 COMMON := source/chess/clock.cpp source/chess/chess.cpp source/ai/search.cpp source/ai/styles.cpp source/ai/bots.cpp source/economy/profile.cpp source/storage/store.cpp source/storage/profiles.cpp source/progression/progression.cpp source/openings/openings.cpp source/variants/variants.cpp source/composer/composer.cpp source/platform/battery.cpp source/localization/localization.cpp
-APP := $(COMMON) source/ai/worker.cpp source/ai/hints.cpp source/ui/end_scene.cpp source/ui/onboarding.cpp source/ui/review.cpp source/training/campaign.cpp source/training/academy.cpp source/graphics/renderer.cpp source/graphics/audio.cpp source/tournament/tournament.cpp source/archive/archive.cpp source/ui/preferences.cpp source/ui/developer.cpp source/ui/profiles.cpp source/ui/progression.cpp source/ui/openings.cpp source/ui/variants_ui.cpp source/ui/composer_ui.cpp source/ui/app.cpp source/main.cpp
+APP := $(COMMON) source/space/secret.cpp source/ai/worker.cpp source/ai/hints.cpp source/ui/end_scene.cpp source/ui/onboarding.cpp source/ui/review.cpp source/training/campaign.cpp source/training/academy.cpp source/graphics/renderer.cpp source/graphics/audio.cpp source/tournament/tournament.cpp source/archive/archive.cpp source/ui/preferences.cpp source/ui/developer.cpp source/ui/profiles.cpp source/ui/progression.cpp source/ui/openings.cpp source/ui/variants_ui.cpp source/ui/composer_ui.cpp source/ui/app.cpp source/main.cpp
 OBJS := $(patsubst source/%.cpp,build/3ds/%.o,$(APP))
 HEADERS := $(shell find include -name '*.hpp' -o -name '*.inc')
 ARCH := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -mword-relocations
@@ -304,3 +304,12 @@ test-translations: build/test_translation
 	$(PYTHON) tests/test_localization_catalog.py
 	$(PYTHON) tests/test_content_catalog.py
 test: test-translations
+
+build/test_space_secret: $(APP:source/main.cpp=) tests/test_space_secret.cpp $(HEADERS)
+	$(HOST_CXX) $(HOSTFLAGS) $(APP:source/main.cpp=) tests/test_space_secret.cpp -o '$@'
+build/test_space_scene: $(COMMON) source/ui/end_scene.cpp source/graphics/renderer.cpp tests/test_space_scene.cpp $(HEADERS) assets/generated/atlas.hpp assets/portraits/portraits.hpp
+	$(HOST_CXX) $(HOSTFLAGS) $(COMMON) source/ui/end_scene.cpp source/graphics/renderer.cpp tests/test_space_scene.cpp -o '$@'
+test-space-modules: build/test_space_secret build/test_space_scene
+	./build/test_space_secret
+	./build/test_space_scene
+test: test-space-modules

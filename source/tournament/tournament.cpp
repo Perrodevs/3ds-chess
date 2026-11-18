@@ -108,9 +108,9 @@ bool start(Session &s, int n, int selected, uint32_t seed) {
     s.entrants[0] = -1;
     s.entrants[1] = selected;
     for (int i = 2; i < n; ++i) {
-        int id = int((uint64_t(s.seed) + uint64_t(i) * 17) % ai::botCount);
+        int id = int((uint64_t(s.seed) + uint64_t(i) * 17) % ai::publicBotCount);
         while (std::find(s.entrants.begin(), s.entrants.begin() + i, id) != s.entrants.begin() + i)
-            id = (id + 1) % ai::botCount;
+            id = (id + 1) % ai::publicBotCount;
         s.entrants[i] = id;
     }
     for (int i = 0; i < n / 2; ++i) {

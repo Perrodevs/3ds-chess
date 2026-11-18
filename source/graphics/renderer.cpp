@@ -1,5 +1,6 @@
 #include "graphics/renderer.hpp"
 #include "localization/localization.hpp"
+#include "graphics/elon_sprite.hpp"
 #include "atlas.hpp"
 #include "portraits.hpp"
 #include <algorithm>
@@ -234,6 +235,7 @@ void Renderer::piece(int p, int x, int y, int skin) {
           2);
 }
 void Renderer::portrait(int character, int expression, int x, int y, int scale) {
+    if(character==40){drawElonPortrait(*this,expression,x,y,scale);return;}
     const int id = std::clamp(character, 0, portraits::characterCount - 1);
     const int sx = (id / portraits::rowsPerBank) * 128 + std::clamp(expression, 0, 3) * 32;
     const int sy = (id % portraits::rowsPerBank) * 32;

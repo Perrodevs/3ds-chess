@@ -1,3 +1,4 @@
+#include "localization/localization.hpp"
 #include "ai/bots.hpp"
 #include "graphics/audio.hpp"
 #include <cassert>
@@ -35,9 +36,9 @@ int main() {
         assert(greetings.insert(ai::botDialogue(bot, ai::Dialogue::Greeting)).second);
         for (int event = 0; event < 9; ++event) {
             const char *line = ai::botDialogue(bot, static_cast<ai::Dialogue>(event));
-            assert(line && *line && std::strlen(line) <= 36);
-            for (const char *c = line; *c; ++c)
-                assert(static_cast<unsigned char>(*c) >= 32 && static_cast<unsigned char>(*c) < 127);
+            assert(line && *line && localization::glyphCount(line) <= 36);
+            std::string utf8=line;size_t byte=0;
+            while(byte<utf8.size()){const auto cp=localization::nextCodepoint(utf8,byte);assert(cp=='?'||localization::fontIndex(cp)!='?'-32);}
         }
         for (int expression = 0; expression < 4; ++expression)
             assert(*ai::botLine(bot, expression) && std::strlen(ai::botLine(bot, expression)) <= 23);
@@ -51,5 +52,5 @@ int main() {
     audio.music(false);
     audio.shutdown();
     audio.shutdown();
-    std::cout << "41 unique original music loops; 360 short character lines verified\n";
+    std::cout << "42 unique original music loops; 369 short character lines verified\n";
 }

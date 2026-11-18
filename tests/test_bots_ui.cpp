@@ -1,3 +1,4 @@
+#include "space/secret.hpp"
 #include "ai/bots.hpp"
 #include "ui/app.hpp"
 #include <cassert>
@@ -23,6 +24,9 @@ void enterSelector(ui::App &app) {
 int main() {
     char path[] = "/tmp/3ds-bots-XXXXXX";
     assert(mkdtemp(path));
+    space::State secret;assert(space::initialize(secret,0));
+    secret.byteWon=secret.jensenWon=secret.unlocked=secret.unlockAnnounced=true;
+    assert(space::Store(std::string(path)+"/space.dat").save(secret));
     graphics::Renderer renderer;
     assert(renderer.init());
     for (int id = 0; id < ai::botCount; ++id) {

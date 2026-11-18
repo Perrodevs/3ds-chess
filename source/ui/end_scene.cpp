@@ -1,3 +1,4 @@
+#include "localization/localization.hpp"
 #include "ui/end_scene.hpp"
 #include <algorithm>
 #include <array>
@@ -15,15 +16,18 @@ constexpr std::array<int, 15> FallingPieces = {
     chess::Bishop, chess::Pawn,   chess::Knight, chess::Pawn,   chess::Queen,
 };
 void centered(graphics::Renderer &renderer, int y, const char *text, Color color, int scale) {
-    const int width = int(std::strlen(text)) * 6 * scale;
-    renderer.text((400 - width) / 2, y, text, color, scale);
+    const auto translated=localization::translate(text);
+    const int width = int(localization::glyphCount(translated)) * 6 * scale;
+    renderer.rawText((400 - width) / 2, y, translated, color, scale);
 }
 void largeQueen(graphics::Renderer &renderer, int side, int x, int y, int scale, int skin) {
     renderer.image((chess::Queen - 1) * 16, 64 + skin * 32 + (side < 0 ? 16 : 0), 12, 12, x, y,
                    scale);
 }
 } // namespace
-void EndScene::begin(const economy::Session &session) {
+void EndScene::begin(const economy::Session &session, space::Scene scene) {
+    special = session.bot==40 && session.mode==0 ? scene : space::Scene::None;
+    limit = special==space::Scene::Rocket?240:special==space::Scene::FailedRocket?120:Duration;
     result = session.game.result;
     local = session.mode == 1;
     winner = result == chess::Result::WhiteWin ? 1 : result == chess::Result::BlackWin ? -1 : 0;
@@ -33,18 +37,18 @@ void EndScene::begin(const economy::Session &session) {
         frame = 0;
     } else {
         headline = result == chess::Result::Draw ? "TABLAS" : "PARTIDA EN CURSO";
-        frame = Duration;
+        frame = limit;
     }
 }
 void EndScene::update() {
-    if (frame < Duration)
+    if (frame < limit)
         ++frame;
 }
 void EndScene::skip() {
-    frame = Duration;
+    frame = limit;
 }
 bool EndScene::finished() const {
-    return frame >= Duration;
+    return frame >= limit;
 }
 int EndScene::defeatedSide() const {
     return loser;
@@ -55,6 +59,31 @@ const char *EndScene::title() const {
 void EndScene::drawTop(graphics::Renderer &renderer, int skin) const {
     skin = std::clamp(skin, 0, 2);
     renderer.screenBegin(0, Background);
+    if(special!=space::Scene::None){
+        const bool failed=special==space::Scene::FailedRocket;
+        const bool car=special==space::Scene::Roadster;
+        const bool sky=car||frame>125;
+        if(!sky)renderer.rect(0,180,400,60,rgb(40,48,65));
+        for(int i=0;i<48;++i){int x=(i*73+400-frame*(1+i%3))%400;int y=(i*37)%175;if(sky||i<12)renderer.rect(x,y,1+i%2,1+i%2,Ink);}
+        if(car){int x=-100+frame*4;int y=140-std::max(0,frame-40)/2;
+            renderer.rect(x,y,82,17,rgb(190,37,52));renderer.rect(x+8,y-8,54,11,rgb(230,55,65));
+            renderer.rect(x+24,y-22,33,16,Blue);renderer.rect(x+21,y-22,4,16,rgb(190,37,52));
+            renderer.rect(x+8,y+12,15,12,Background);renderer.rect(x+61,y+12,15,12,Background);
+            renderer.rect(x+12,y+16,7,5,Muted);renderer.rect(x+65,y+16,7,5,Muted);
+            renderer.rect(x+73,y+2,8,4,Gold);
+        }else{
+            int rise=failed?(frame<60?std::max(0,frame-35)/2:std::max(0,90-frame)/2):std::max(0,frame-80)*std::max(0,frame-80)/55;
+            int y=84-rise;renderer.rect(110,199,180,9,Muted);renderer.rect(180,y,40,104,Ink);
+            for(int n=0;n<16;++n)renderer.rect(180+n,y-16+n,40-2*n,1,Ink);
+            renderer.rect(172,y+77,8,26,rgb(190,37,52));renderer.rect(220,y+77,8,26,rgb(190,37,52));
+            renderer.portrait(40,failed&&frame>60?3:2,184,y+20,1);
+            if(frame>20&&(!failed||frame<65)){renderer.rect(188,y+104,24,12+(frame%9),Gold);renderer.rect(194,y+104,12,20+(frame%11),rgb(235,93,45));}
+            for(int i=0;i<12;++i)if(frame>20)renderer.rect(155+(i*29+frame)%90,192+i%3*5,7+i%4,4,Muted);
+        }
+        centered(renderer,12,failed?"EL AJEDREZ NO ERA TAN SIMPLE.":car?"DERROTA EN ÓRBITA":"SOLO 64 CASILLAS. QUÉ SIMPLE.",Gold,1);
+        centered(renderer,224,"A o B para saltar la animacion.",Muted,1);
+        return;
+    }
     renderer.border(8, 6, 384, 228, Muted);
     renderer.rect(12, 218, 376, 3, loser < 0 ? Blue : loser > 0 ? Gold : Muted);
     renderer.rect(12, 221, 376, 9, Panel);

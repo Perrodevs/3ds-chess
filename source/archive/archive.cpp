@@ -122,7 +122,7 @@ bool validDate(const std::string &date) {
     return day >= 1 && day <= maximum;
 }
 bool Entry::session(economy::Session &out) const {
-    if (!id || id > MaxId || bot < 0 || bot >= ai::botCount || bot >= 40 ||
+    if (!id || id > MaxId || bot < 0 || bot >= ai::botCount ||
         (human != 1 && human != -1) || mode < 0 || mode > 2 || level < 0 || level >= 6 ||
         result == chess::Result::Playing || int(result) < 1 || int(result) > 3 || !clock.valid() ||
         moves.size() > 16384 || playerName.empty() || playerName.size() > 24 ||
@@ -288,7 +288,7 @@ std::string encode(const State &s) {
         out << '\n';
     }
     auto payload = out.str();
-    return "3DSARCHIVE 1 " + std::to_string(checksum(payload)) + "\n" + payload;
+    return "3DSARCHIVE 2 " + std::to_string(checksum(payload)) + "\n" + payload;
 }
 bool decode(const std::string &bytes, State &out) {
     if (bytes.size() > MaxBytes)
@@ -301,7 +301,7 @@ bool decode(const std::string &bytes, State &out) {
     int version;
     std::istringstream header(bytes.substr(0, nl));
     if (!(header >> magic >> version >> sumValue) || header >> extra || magic != "3DSARCHIVE" ||
-        version != 1)
+        (version != 1 && version != 2))
         return false;
     std::string payload = bytes.substr(nl + 1);
     if (checksum(payload) != sumValue)
@@ -313,8 +313,8 @@ bool decode(const std::string &bytes, State &out) {
         return false;
     if (!read(in, state.statistics.total))
         return false;
-    for (auto &c : state.statistics.byOpponent)
-        if (!read(in, c))
+    for (int i=0;i<(version==1?40:ai::botCount);++i)
+        if (!read(in, state.statistics.byOpponent[size_t(i)]))
             return false;
     for (auto &c : state.statistics.byColor)
         if (!read(in, c))

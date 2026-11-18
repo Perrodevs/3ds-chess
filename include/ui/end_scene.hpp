@@ -1,12 +1,14 @@
 #pragma once
 #include "economy/profile.hpp"
+#include "space/secret.hpp"
 #include "graphics/renderer.hpp"
 
 namespace ui {
 // A cosmetic terminal scene. It never changes the game, clocks or rewards.
 class EndScene {
     static constexpr int Duration = 180;
-    int frame = Duration;
+    int frame = Duration, limit = Duration;
+    space::Scene special = space::Scene::None;
     int loser = 0;
     int winner = 0;
     bool local = false;
@@ -14,7 +16,8 @@ class EndScene {
     const char *headline = "PARTIDA EN CURSO";
 
   public:
-    void begin(const economy::Session &);
+    void begin(const economy::Session &, space::Scene = space::Scene::None);
+    space::Scene scene() const { return special; }
     void update();
     void skip();
     bool finished() const;

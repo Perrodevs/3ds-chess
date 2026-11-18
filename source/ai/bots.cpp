@@ -1,3 +1,4 @@
+#include "localization/localization.hpp"
 #include "ai/bots.hpp"
 #include <array>
 #include <string>
@@ -74,6 +75,7 @@ const Bot bots[botCount] = {
     {"Steve", "Personaje invitado", "Bajo", "Sin ELO oficial", 1, 37, true, 0xbe66ec04u},
     {"Alex", "Personaje invitado", "Normal", "Sin ELO oficial", 2, 38, true, 0x65d14565u},
     {"Jensen Huang", "Fundador de NVIDIA", "Fuerte", "Sin ELO oficial", 4, 39, true, 0x4e564441u},
+    {"Elon Musk", "Invitado especial ficticio", "Fuerte", "Motor propio: sin Elo real", 4, 40, true, 0x53504143u},
 };
 const Bot &botAt(int id) {
     return bots[id >= 0 && id < botCount ? id : 0];
@@ -101,19 +103,24 @@ const char *botLine(int id, int expression) {
     static constexpr Dialogue events[] = {Dialogue::Greeting, Dialogue::Thinking,
                                           Dialogue::Capture, Dialogue::Mistake};
     static const auto compact = [] {
-        std::array<std::array<std::string, 4>, botCount> result;
+        std::array<std::array<std::array<std::string, 4>, botCount>,2> result;
+        const auto original=localization::language();
+        for(int lang=0;lang<2;++lang){
+        localization::setLanguage(lang?localization::Language::English:localization::Language::Spanish);
         for (int id = 13; id < botCount; ++id)
             for (int expression = 0; expression < 4; ++expression) {
-                std::string line = botDialogue(id, events[expression]);
+                std::string line = localization::translate(botDialogue(id, events[expression]));
                 if (line.size() > 23) {
                     size_t cut = line.rfind(' ', 22);
                     line = line.substr(0, cut == std::string::npos ? 22 : cut) + ".";
                 }
-                result[id][expression] = std::move(line);
+                result[lang][id][expression] = std::move(line);
             }
+        }
+        localization::setLanguage(original);
         return result;
     }();
-    return bot < 13 ? lines[bot][face] : compact[bot][face].c_str();
+    return bot < 13 ? lines[bot][face] : compact[localization::language()==localization::Language::English?1:0][bot][face].c_str();
 }
 const char *botDialogue(int id, Dialogue event) {
     static constexpr const char *lines[botCount][9] = {
@@ -237,6 +244,9 @@ const char *botDialogue(int id, Dialogue event) {
         {"Mi rey pide mas VRAM.", "Calculando en paralelo.", "Una pieza mas para mi GPU.",
          "Tu rey necesita refrigeracion.", "Ese mate tiene ray tracing!", "Me faltaron nucleos CUDA.",
          "Acelera esa combinacion.", "Buen rendimiento por jugada!", "Revisa los drivers del plan."},
+        {"¿Solo 64 casillas?", "Necesito más cómputo.", "Movimiento optimizado.",
+         "Tu rey necesita un parche.", "Ajedrez demasiado simple.", "Error de simulación.",
+         "¿Dónde está el árbol tecnológico?", "Grok ya lo sabía.", "Necesito más datos."},
     };
     const int bot = id >= 0 && id < botCount ? id : 0;
     const int e = static_cast<int>(event);

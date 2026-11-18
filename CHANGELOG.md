@@ -6,6 +6,16 @@ releases. No historical commits or version tags are inferred from those reports.
 
 ## Unreleased
 
+### Added — secret rival modules
+
+- Register Elon Musk at stable ID40 with nine fictional dialogue events, an
+  original code-drawn portrait with four expressions and an original music theme.
+- Add verified Byte/Jensen unlock progress and persistent cinematic alternation
+  in a separate profile sidecar; reject practice, duplicates and early abandonments.
+- Add lightweight Roadster, rocket and failed-launch result scenes with skip.
+- Expand opponent statistics to41 entries and read legacy archive version1;
+  new archive writes use version2. Existing opponent IDs remain unchanged.
+
 ### Added — localization foundation
 
 - Add central ES/EN translation catalogs, bounded composition lookup, numeric

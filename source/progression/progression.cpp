@@ -96,7 +96,7 @@ bool canonical(const State &s,const chess::Game &game,economy::Session &out) {
 }
 int botFor(int level,uint64_t id) {
     int ids[ai::botCount],count=0;
-    for(int i=0;i<ai::botCount;++i) if(ai::botAt(i).engineLevel==level) ids[count++]=i;
+    for(int i=0;i<ai::publicBotCount;++i) if(ai::botAt(i).engineLevel==level) ids[count++]=i;
     return count?ids[size_t((id-1)%uint64_t(count))]:-1;
 }
 void settle(State &s) {

@@ -16,7 +16,7 @@ struct Counters {
 };
 struct Statistics {
     Counters total;
-    std::array<Counters, 40> byOpponent{};
+    std::array<Counters, ai::botCount> byOpponent{};
     // Index0: human played White; index1: human played Black.
     std::array<Counters, 2> byColor{};
     uint64_t currentStreak = 0, bestStreak = 0;
