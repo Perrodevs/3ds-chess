@@ -77,7 +77,7 @@ int main() {
                                  "Wesley So",     "Capablanca"};
     const int masterElo[] = {2650, 2561, 2788, 2820, 2650, 2640, 2660, 2800, 2606,
                              2502, 2600, 2730, 2830, 2735, 2686, 2795, 2820, 2725};
-    assert(ai::botCount == 41);
+    assert(ai::botCount == 50);
     assert(std::string(ai::botAt(39).name) == "Jensen Huang");
     assert(std::string(ai::botAt(39).tagline) == "Fundador de NVIDIA");
     assert(ai::botAt(39).portraitIndex == 39 && ai::botAt(39).referenceElo == 0);

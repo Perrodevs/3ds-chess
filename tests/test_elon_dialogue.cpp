@@ -6,7 +6,7 @@
 #include <unistd.h>
 int main() {
  using D=ai::Dialogue; using L=localization::Language;
- assert(ai::botCount==41 && ai::publicBotCount==40);
+ assert(ai::botCount==50 && ai::publicBotCount==40);
  assert(ai::botAt(40).engineLevel==4 && ai::styleForBot(40)==ai::Style::Aggressive);
  const char *english[]={"Only 64 squares?","Need more compute.","Move optimized.","Your king needs a patch.","Chess is too simple.","Simulation error.","Where's the tech tree?","Grok knew that already.","I need more data."};
  for(int e=0;e<9;++e) {localization::setLanguage(L::English);assert(localization::translate(ai::botDialogue(40,D(e)))==english[e]);}

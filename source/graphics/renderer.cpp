@@ -1,6 +1,7 @@
 #include "graphics/renderer.hpp"
 #include "localization/localization.hpp"
 #include "graphics/elon_sprite.hpp"
+#include "graphics/rival_sprites.hpp"
 #include "atlas.hpp"
 #include "portraits.hpp"
 #include <algorithm>
@@ -235,6 +236,7 @@ void Renderer::piece(int p, int x, int y, int skin) {
           2);
 }
 void Renderer::portrait(int character, int expression, int x, int y, int scale) {
+    if(character>=41&&character<50){drawNewRival(*this,character,expression,x,y,scale);return;}
     if(character==40){drawElonPortrait(*this,expression,x,y,scale);return;}
     const int id = std::clamp(character, 0, portraits::characterCount - 1);
     const int sx = (id / portraits::rowsPerBank) * 128 + std::clamp(expression, 0, 3) * 32;

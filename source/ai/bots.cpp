@@ -76,6 +76,15 @@ const Bot bots[botCount] = {
     {"Alex", "Personaje invitado", "Normal", "Sin ELO oficial", 2, 38, true, 0x65d14565u},
     {"Jensen Huang", "Fundador de NVIDIA", "Fuerte", "Sin ELO oficial", 4, 39, true, 0x4e564441u},
     {"Elon Musk", "Invitado tecnológico ficticio", "Fuerte", "Motor propio: sin Elo real", 4, 40, true, 0x53504143u},
+    {"Garry Kasparov", "Iniciativa y centro", "Fuerte", "Motor propio: sin Elo real", 5, 41, true, 0x50000001u},
+    {"Mikhail Tal", "Ideas entre las piezas", "Fuerte", "Motor propio: sin Elo real", 5, 42, true, 0x50001EF0u},
+    {"Bobby Fischer", "Cada detalle importa", "Fuerte", "Motor propio: sin Elo real", 5, 43, true, 0x50003DDFu},
+    {"Ada Wong", "Una ruta inesperada", "Normal", "Motor propio: sin Elo real", 3, 44, true, 0x50005CCEu},
+    {"Albert Wesker", "Presion calculada", "Fuerte", "Motor propio: sin Elo real", 4, 45, true, 0x50007BBDu},
+    {"Enderman", "Un salto entre casillas", "Normal", "Motor propio: sin Elo real", 2, 46, true, 0x50009AACu},
+    {"GLaDOS", "Prueba de laboratorio", "Fuerte", "Motor propio: sin Elo real", 4, 47, true, 0x5000B99Bu},
+    {"Linus Torvalds", "Una posicion mantenible", "Normal", "Motor propio: sin Elo real", 3, 48, true, 0x5000D88Au},
+    {"NULL", "Jefe secreto adaptativo", "Fuerte", "Motor propio: sin Elo real", 5, 49, true, 0x5000F779u},
 };
 const Bot &botAt(int id) {
     return bots[id >= 0 && id < botCount ? id : 0];
@@ -247,12 +256,30 @@ const char *botDialogue(int id, Dialogue event) {
         {"¿Solo 64 casillas?", "Necesito más cómputo.", "Movimiento optimizado.",
          "Tu rey necesita un parche.", "Ajedrez demasiado simple.", "Error de simulación.",
          "¿Y el árbol tecnológico?", "Grok ya lo sabía.", "Necesito más datos."},
+        {"El centro tiene una historia.", "Busco la iniciativa.", "Mi plan gana espacio.", "Tu rey pide un plan.", "La iniciativa fue decisiva.", "Tu plan fue mas profundo.", "Coordina antes de atacar.", "Una idea bien construida.", "Revisa tu pieza menos activa."},
+        {"¿Aceptas un sacrificio?", "Hay una idea escondida.", "Abramos otra columna.", "El rey entra en la historia.", "La combinacion funciono.", "Encontraste la defensa.", "Busca una chispa tactica.", "Esa era la chispa.", "La idea necesita apoyo."},
+        {"Cada detalle importa aqui.", "Reviso la coordinacion.", "Una pieza bien situada.", "Un detalle contra tu rey.", "Las piezas trabajaron juntas.", "Tu precision fue mejor.", "Busca la jugada exacta.", "Todos los detalles encajan.", "Comprueba la respuesta rival."},
+        {"No todas las rutas se ven.", "Espero una oportunidad.", "No viste venir esa jugada.", "Tu rey quedo expuesto.", "La ruta estaba preparada.", "Esta vez me sorprendiste.", "Encuentra la salida discreta.", "Una salida elegante.", "Mira detras de la amenaza."},
+        {"Todo esta bajo control.", "Evaluando tus defensas.", "Un recurso menos para ti.", "La presion llega a tu rey.", "El plan se ha completado.", "Mi calculo tenia un limite.", "Detecta el punto debil.", "Debilidad confirmada.", "Ese plan necesita revision."},
+        {"No mires mis piezas.", "Otra casilla me llama.", "Ese bloque era mio.", "Tu rey me ha visto.", "El tablero quedo en silencio.", "Me ire a otra casilla.", "Mira entre los bloques.", "Encontraste el portal.", "Ese portal no lleva alli."},
+        {"Esto es un experimento.", "Tu paciencia sera evaluada.", "Muestra retirada con exito.", "Tu rey es parte de la prueba.", "Resultado bastante previsible.", "Anomalia registrada.", "Resuelve esta prueba simple.", "Competencia inesperada.", "El error tambien es un dato."},
+        {"Revisemos este tablero.", "Compruebo las dependencias.", "Cambio pequeno y concreto.", "Eso necesita un parche.", "La posicion compila.", "Buen arreglo. Otra partida.", "Encuentra el fallo del plan.", "La prueba ya pasa.", "Ese cambio rompe el rey."},
+        {"Ya conozco tus movimientos.", "Comparando tus patrones.", "Un recurso menos.", "Tu rey deja una senal.", "He analizado tus movimientos.", "No habia previsto esa jugada.", "El patron tiene una salida.", "Una excepcion interesante.", "Aun repites la misma idea."},
     };
     const int bot = id >= 0 && id < botCount ? id : 0;
     const int e = static_cast<int>(event);
     return lines[bot][e >= 0 && e < 9 ? e : 0];
 }
 const char *rivalInteraction(int speaker, int opponent, Dialogue event) {
+    if (speaker==41 && opponent==3 && (event==Dialogue::Greeting || event==Dialogue::Thinking)) return "Una iniciativa entre campeones.";
+    if (speaker==42 && opponent==43 && (event==Dialogue::Greeting || event==Dialogue::Thinking)) return "Tu precision, mis ideas.";
+    if (speaker==44 && opponent==31 && (event==Dialogue::Greeting || event==Dialogue::Thinking)) return "Leon, mira la siguiente casilla.";
+    if (speaker==45 && opponent==34 && (event==Dialogue::Greeting || event==Dialogue::Thinking)) return "Chris, el centro es mi plan.";
+    if (speaker==46 && opponent==37 && (event==Dialogue::Greeting || event==Dialogue::Thinking)) return "Steve, ese bloque se mueve.";
+    if (speaker==47 && opponent==2 && (event==Dialogue::Greeting || event==Dialogue::Thinking)) return "Byte, comparte tus resultados.";
+    if (speaker==48 && opponent==39 && (event==Dialogue::Greeting || event==Dialogue::Thinking)) return "Jensen, revisemos ese driver.";
+    if (speaker==49 && opponent==40 && (event==Dialogue::Greeting || event==Dialogue::Thinking)) return "Tu simulacion deja patrones.";
+    if (speaker==49 && opponent==2 && (event==Dialogue::Greeting || event==Dialogue::Thinking)) return "Byte, un patron no es destino.";
     if (speaker != 40) return nullptr;
     if (opponent == 39) {
         if (event == Dialogue::Greeting) return "Necesito más VRAM.";

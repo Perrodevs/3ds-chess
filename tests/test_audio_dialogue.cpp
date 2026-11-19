@@ -52,5 +52,5 @@ int main() {
     audio.music(false);
     audio.shutdown();
     audio.shutdown();
-    std::cout << "42 unique original music loops; 369 short character lines verified\n";
+    std::cout << ai::botCount+1 << " unique original music loops; " << ai::botCount*9 << " short character lines verified\n";
 }

@@ -3,7 +3,7 @@
 #include <cstdint>
 namespace ai {
 // IDs are persisted in save files: never reorder existing entries.
-inline constexpr int botCount = 41;
+inline constexpr int botCount = 50;
 inline constexpr int publicBotCount = 40; // Original IDs; secret rivals are not random entrants.
 enum class Expression { Neutral = 0, Thinking = 1, Happy = 2, Frustrated = 3 };
 struct Bot {

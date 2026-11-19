@@ -2016,18 +2016,24 @@ void App::bottom(Renderer &r) {
     // Only actual AI-AI tournament pairings get a contextual line. The bracket
     // remains visible; there is no popup and no player win/defeat cinematic.
     const char *interaction = nullptr;
+    int interactionSpeaker = 40;
     if (view == View::Tournament && tournamentState.size &&
         !tournamentState.finished() && !tournamentState.playerMatch()) {
         const int white = tournamentState.entrants[size_t(tournamentState.whiteEntrant())];
         const int black = tournamentState.entrants[size_t(tournamentState.blackEntrant())];
         const auto event = tournamentState.game.moves.empty() ? ai::Dialogue::Greeting : ai::Dialogue::Thinking;
         interaction = ai::rivalInteraction(white, black, event);
-        if (!interaction) interaction = ai::rivalInteraction(black, white, event);
+        interactionSpeaker = white;
+        if (!interaction) { interaction = ai::rivalInteraction(black, white, event); interactionSpeaker = black; }
     }
     if (noticeFrames > 0)
         r.text(12, 226, notice, flash ? gold : muted, 1, 49);
     else if (interaction)
-        r.rawText(12, 226, "Elon: " + localization::translate(interaction), blue, 1, 49);
+        r.rawText(12, 226, std::string(interactionSpeaker == 40 ? "Elon" :
+                    interactionSpeaker == 41 ? "Kasparov" : interactionSpeaker == 42 ? "Tal" :
+                    interactionSpeaker == 44 ? "Ada" : interactionSpeaker == 45 ? "Wesker" :
+                    interactionSpeaker == 48 ? "Linus" : ai::bots[interactionSpeaker].name) +
+                    ": " + localization::translate(interaction), blue, 1, 49);
     else
         r.text(12, 226,
                view == View::Home ? "SELECT: CARRERA / SUPERVIVENCIA / TROFEOS"

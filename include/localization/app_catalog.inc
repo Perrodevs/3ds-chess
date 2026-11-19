@@ -350,7 +350,7 @@
 {"DERROTA EN ÓRBITA", "DEFEAT IN ORBIT"},
 {"SOLO 64 CASILLAS. QUÉ SIMPLE.", "ONLY 64 SQUARES. TOO EASY."},
 {"EL AJEDREZ NO ERA TAN SIMPLE.", "CHESS WASN'T THAT SIMPLE."},
-{"41 RIVALES. A TU RITMO.", "41 OPPONENTS. AT YOUR PACE."},
+{"50 RIVALES. A TU RITMO.", "50 OPPONENTS. AT YOUR PACE."},
 {"Equilibrado", "Balanced"},
 {"Agresivo", "Aggressive"},
 {"Defensivo", "Defensive"},

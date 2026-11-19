@@ -7,7 +7,7 @@ static void key(ui::App&a,unsigned k){a.update({k,false,0,0},0);}
 static void tap(ui::App&a,int y){a.update({0,true,50,y},0);}
 static void plies(chess::Game &g){for(auto u:{"g1f3","b8c6","f3g1","c6b8","e2e4","e7e5","f1c4","f8c5"}){chess::Move m;for(auto x:g.position.legal())if(x.uci()==u)m=x;assert(g.play(m));}}
 int main(){
- assert(ai::botCount==41&&std::string(ai::botAt(40).name)=="Elon Musk"&&ai::botAt(40).engineLevel==4);
+ assert(ai::botCount==50&&std::string(ai::botAt(40).name)=="Elon Musk"&&ai::botAt(40).engineLevel==4);
  char tmp[]="/tmp/chess-space-ui-XXXXXX";assert(mkdtemp(tmp));std::string path=tmp;
  ui::App a(path);a.init();a.view=ui::View::Home;
  tap(a,48);tap(a,96);for(int i=0;i<40;++i)key(a,ui::Right);key(a,ui::A);assert(a.view==ui::View::Bots&&a.state.settings.bot==0);

@@ -41,9 +41,14 @@ int main(){
  std::string valid;{std::ifstream in(f,std::ios::binary);valid={std::istreambuf_iterator<char>(in),{}};}
  for(size_t n=0;n<valid.size();++n){std::ofstream(f,std::ios::binary)<<valid.substr(0,n);assert(localization::loadLanguage(f,l)&&l==L::Spanish);}
  assert(localization::saveLanguage(f,L::English));std::filesystem::create_directory(f+".tmp");assert(!localization::saveLanguage(f,L::Spanish));assert(localization::loadLanguage(f,l)&&l==L::English);
- // Archive v1's40opponent rows migrate to41 without invented results.
- archive::State archived;assert(archive::initialize(archived,0));auto bytes=archive::encode(archived);auto payload=bytes.substr(bytes.find('\n')+1);std::istringstream in(payload);std::string line,old;int index=0;while(std::getline(in,line)){if(index++!=42)old+=line+'\n';}
+ // Archive v1/v2 retain their historical40/41 rows when migrating to50.
+ archive::State archived;assert(archive::initialize(archived,0));auto bytes=archive::encode(archived);auto payload=bytes.substr(bytes.find('\n')+1);std::istringstream in(payload);std::string line,old;int index=0;while(std::getline(in,line)){if(index<42 || index>=52)old+=line+'\n';++index;}
  uint32_t checksum=2166136261u;for(unsigned char c:old)checksum=(checksum^c)*16777619u;
  archive::State decoded;assert(archive::decode("3DSARCHIVE 1 "+std::to_string(checksum)+"\n"+old,decoded));assert(decoded.statistics.byOpponent[40].played()==0);
+ std::istringstream v2in(payload);std::string v2;index=0;while(std::getline(v2in,line)){if(index<43||index>=52)v2+=line+'\n';++index;}
+ checksum=2166136261u;for(unsigned char c:v2)checksum=(checksum^c)*16777619u;
+ assert(archive::decode("3DSARCHIVE 2 "+std::to_string(checksum)+"\n"+v2,decoded));
+ for(int id=41;id<50;++id)assert(decoded.statistics.byOpponent[id].played()==0);
+
  std::filesystem::remove_all(path);std::cout<<"Localization: catalog, glyphs, formatted text, first choice, profile isolation, reload, notation independence, failed writes and archive migration passed\n";
 }

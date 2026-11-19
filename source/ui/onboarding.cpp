@@ -84,7 +84,7 @@ void drawTitleTop(Renderer &r, uint32_t ticks) {
     r.text(188, 44, "CHESS", ink, 4);
     centered(r, 88, "TU PROXIMA JUGADA EMPIEZA AQUI", muted);
     r.rect(119, 109, 162, 1, gold);
-    centered(r, 120, "41 RIVALES. A TU RITMO.", ink);
+    centered(r, 120, "50 RIVALES. A TU RITMO.", ink);
     const int phase = int(ticks % 120), bob = (phase < 60 ? phase : 120 - phase) / 15;
     r.image((chess::Queen - 1) * 16, 64, 12, 12, 28, 108 + bob, 4);
     r.image((chess::Queen - 1) * 16, 80, 12, 12, 324, 112 - bob, 4);

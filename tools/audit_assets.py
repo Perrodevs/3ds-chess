@@ -23,6 +23,7 @@ for index,name in enumerate(expected):
 assert len(hashes)==160 and len(set(hashes))==160
 header=(root/'assets/portraits/portraits.hpp').read_text()
 assert 'characterCount = 40' in header
-assert re.search(r'botCount\s*=\s*41', (root/'include/ai/bots.hpp').read_text())
+assert re.search(r'botCount\s*=\s*50', (root/'include/ai/bots.hpp').read_text())
 assert (root/'include/graphics/elon_sprite.hpp').is_file()
-print('Assets: 40 legacy atlas IDs/160 faces plus code-drawn Elon ID40/four expressions; atlas pixels agree')
+assert (root/'include/graphics/rival_sprites.hpp').is_file()
+print('Assets: 40 legacy atlas IDs/160 faces plus code-drawn IDs40-49/40 expressions (200 total); atlas pixels agree')

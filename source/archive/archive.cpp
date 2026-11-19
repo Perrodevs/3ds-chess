@@ -288,7 +288,7 @@ std::string encode(const State &s) {
         out << '\n';
     }
     auto payload = out.str();
-    return "3DSARCHIVE 2 " + std::to_string(checksum(payload)) + "\n" + payload;
+    return "3DSARCHIVE 3 " + std::to_string(checksum(payload)) + "\n" + payload;
 }
 bool decode(const std::string &bytes, State &out) {
     if (bytes.size() > MaxBytes)
@@ -301,7 +301,7 @@ bool decode(const std::string &bytes, State &out) {
     int version;
     std::istringstream header(bytes.substr(0, nl));
     if (!(header >> magic >> version >> sumValue) || header >> extra || magic != "3DSARCHIVE" ||
-        (version != 1 && version != 2))
+        (version != 1 && version != 2 && version != 3))
         return false;
     std::string payload = bytes.substr(nl + 1);
     if (checksum(payload) != sumValue)
@@ -313,7 +313,7 @@ bool decode(const std::string &bytes, State &out) {
         return false;
     if (!read(in, state.statistics.total))
         return false;
-    for (int i=0;i<(version==1?40:ai::botCount);++i)
+    for (int i=0;i<(version==1?40:version==2?41:ai::botCount);++i)
         if (!read(in, state.statistics.byOpponent[size_t(i)]))
             return false;
     for (auto &c : state.statistics.byColor)

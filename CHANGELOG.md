@@ -4,6 +4,14 @@ This log records actual project changes from the adoption of the local Git workf
 Earlier implementation reports remain in `docs/`; they are not retroactive Git
 releases. No historical commits or version tags are inferred from those reports.
 
+## Unreleased — 50 Rivals
+
+- Expand stable catalog to IDs0–49, with original code portraits, four expressions,
+  nine bilingual events and procedural themes for each new opponent.
+- Configure existing playstyles and add optional contextual rivalries.
+- Read archive formats1/2 (40/41 rivals); write format3 with50 statistics rows.
+- Preserve the original40 random entrants in existing progression/tournaments.
+
 ## 1.2.0 RC2 — Elon character audit (physical validation pending)
 
 ### Added

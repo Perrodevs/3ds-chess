@@ -12,7 +12,7 @@ const char *styleName(Style s) { return names[index(s)]; }
 const StyleWeights &styleWeights(Style s) { return weights[index(s)]; }
 Style styleForBot(int id) {
     // Stable IDs, preferences for this game only; no claim of authentic imitation.
-    static constexpr Style profiles[41] = {
+    static constexpr Style profiles[50] = {
         Style::Balanced,Style::Aggressive,Style::Tactical,Style::Positional,Style::Tactical,
         Style::Balanced,Style::Balanced,Style::Defensive,Style::Positional,Style::Aggressive,
         Style::Defensive,Style::Balanced,Style::Endgame,Style::Tactical,Style::Positional,
@@ -20,8 +20,10 @@ Style styleForBot(int id) {
         Style::Positional,Style::Balanced,Style::Defensive,Style::Aggressive,Style::Positional,
         Style::Tactical,Style::Aggressive,Style::Endgame,Style::Tactical,Style::Defensive,
         Style::Endgame,Style::Tactical,Style::Defensive,Style::Positional,Style::Aggressive,
-        Style::Defensive,Style::Tactical,Style::Endgame,Style::Positional,Style::Balanced,Style::Aggressive
+        Style::Defensive,Style::Tactical,Style::Endgame,Style::Positional,Style::Balanced,Style::Aggressive,
+        Style::Tactical,Style::Aggressive,Style::Positional,Style::Defensive,
+        Style::Aggressive,Style::Balanced,Style::Tactical,Style::Defensive,Style::Balanced
     };
-    return id >= 0 && id < 41 ? profiles[id] : Style::Balanced;
+    return id >= 0 && id < 50 ? profiles[id] : Style::Balanced;
 }
 } // namespace ai

@@ -48,7 +48,7 @@ int main() {
         std::cout<<ai::styleName(ai::Style(s))<<" 50000 evals: "<<std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now()-t).count()<<" host us\n";
     }
     (void)sink;
-    for(int id=0;id<41;++id)assert(int(ai::styleForBot(id))>=0&&int(ai::styleForBot(id))<6);
+    for(int id=0;id<50;++id)assert(int(ai::styleForBot(id))>=0&&int(ai::styleForBot(id))<6);
     assert(ai::styleForBot(-1)==ai::Style::Balanced);
     chess::Game mate;assert(chess::Position::fromFen("7k/8/5KQ1/8/8/8/8/8 w - - 0 1",mate.position));mate.initialFen=mate.position.fen();mate.positions={mate.position.key()};
     for(int s=0;s<ai::styleCount;++s) {

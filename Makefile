@@ -30,7 +30,7 @@ build/3ds-chess.elf: $(OBJS) Makefile tools/3dsx-armv6k.specs
 	'$(ARM_CXX)' $(LDFLAGS) $(OBJS) -lcitro2d -lcitro3d -lctru -lm -o '$@'
 dist/3ds-chess.smdh: assets/generated/icon.png Makefile include/app_version.hpp build/language.stamp
 	@mkdir -p dist
-	'$(DEVKITPRO)/tools/bin/smdhtool' --create '3DS Chess' '$(VERSION) / $(DEFAULT_LANGUAGE) / 41 rivals' 'Pollitopio' 'assets/generated/icon.png' '$@'
+	'$(DEVKITPRO)/tools/bin/smdhtool' --create '3DS Chess' '$(VERSION) / $(DEFAULT_LANGUAGE) / 50 rivals' 'Pollitopio' 'assets/generated/icon.png' '$@'
 dist/3ds-chess.3dsx: build/3ds-chess.elf dist/3ds-chess.smdh
 	'$(DEVKITPRO)/tools/bin/3dsxtool' '$<' '$@' --smdh=dist/3ds-chess.smdh
 build/test_polish_ui: $(APP:source/main.cpp=) tests/test_polish_ui.cpp $(HEADERS) assets/generated/atlas.hpp assets/portraits/portraits.hpp
@@ -359,3 +359,11 @@ sanitize-elon:
 	./build/elon-audit/sanitize_dialogue
 	$(HOST_CXX) $(HOSTFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer $(COMMON) source/ui/end_scene.cpp source/graphics/renderer.cpp tests/test_space_scene.cpp -o build/elon-audit/sanitize_scenes
 	./build/elon-audit/sanitize_scenes
+
+build/test_fifty_catalog: $(COMMON) source/graphics/renderer.cpp tests/test_fifty_catalog.cpp $(HEADERS)
+	$(HOST_CXX) $(HOSTFLAGS) $(COMMON) source/graphics/renderer.cpp tests/test_fifty_catalog.cpp -o '$@'
+test-fifty-catalog: build/test_fifty_catalog
+	./build/test_fifty_catalog
+	$(PYTHON) tests/test_content_catalog.py
+	$(PYTHON) tests/test_localization_catalog.py
+test: test-fifty-catalog
