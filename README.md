@@ -1,6 +1,15 @@
 # 3DS Chess
 
-**1.2.0 RC2 — Space & Language; pendiente de validación física.**
+**1.3.0 RC1 — 50 Rivals; pendiente de validación física.**
+
+50 rivales: Kasparov, Tal, Fischer, Ada, Wesker, Enderman, GLaDOS, Linus y NULL
+se suman a los41 anteriores sin cambiar sus IDs. NULL usa tendencias offline de
+partidas verificadas del perfil, tiene escenas breves y entrega un tablero gratuito.
+Se desbloquea con victorias válidas sobre Byte, Elon y GLaDOS, más Carrera Diamante
+(36 puntos). [Informe de la actualización](docs/FIFTY_RIVALS_COMPLETE.md) ·
+[Modelo y límites de NULL](docs/NULL_ADAPTATION.md) · [Pruebas](docs/FIFTY_TEST_RESULTS.json).
+No se han publicado ni fusionado estos cambios. Conserva una copia de tus guardados:
+la versión lee formatos anteriores, pero los escritores nuevos no abren en RC2.
 
 Español/English con selector inicial e idioma por perfil. Elon Musk es el rival
 secreto 41: vence a Byte y Jensen en IA válida para desbloquearlo. Cuatro
@@ -11,13 +20,13 @@ expresiones, nueve diálogos ficticios y escenas espaciales que puedes saltar.
 Los ZIP ES y EN son alternativas de instalación y conservan los mismos guardados.
 Solo pruebas locales: los recursos anteriores todavía requieren revisión de derechos.
 
-Tres perfiles, Developer con codigo `1234`, Carrera, Supervivencia, 19 trofeos,
+Tres perfiles, Developer con codigo `1234`, Carrera, Supervivencia, 20 trofeos,
 10 aperturas/20 lineas, editor FEN, 30 posiciones y 30 puzzles personalizados por
 perfil, Chess960/Three-check/King of the Hill con IA y bateria aproximada real.
 Desde el menu principal, SELECT abre los modos Legacy.
 [Informe completo y limites](docs/LEGACY_COMPLETE.md) · [Pruebas](docs/LEGACY_TEST_RESULTS.json).
 Ajedrez homebrew nativo C++17 para Old Nintendo 3DS XL. Offline, graficos 2D pixel art,
-dos pantallas, motor propio y 41 rivales. Se conserva una copia recuperable de 0.8.2 RC.
+dos pantallas, motor propio y 50 rivales. Se conserva una copia recuperable de 0.8.2 RC.
 [Implementacion](docs/UPDATE_090.md), [cambios](docs/CHANGELOG_090.md),
 [pruebas](docs/TESTING.md) y [auditoria anterior](docs/AUDIT_082.md).
 
@@ -31,10 +40,10 @@ dos pantallas, motor propio y 41 rivales. Se conserva una copia recuperable de 0
 - Bateria mediante PTMU: barras 0–5/carga, aviso breve no bloqueante, sin porcentajes.
 - Inicio deliberado, ayuda de4 páginas y menús táctiles inferiores.
 - Contra IA, dos personas en una consola y práctica sin reloj/premios con deshacer.
-- 41 rivales en 9 páginas: los 40 originales y Elon Musk secreto.
+- 50 rivales en 10 páginas: los40 originales, Elon y nueve incorporaciones.
   [Catálogo](docs/BOTS.md) y [rival nuevo](docs/SPACE_SECRET.md).
-- 164 expresiones de 32×32 (160 en atlas y 4 por código), 369 diálogos ficticios
- breves ES/EN,42 bucles musicales originales (menú+41 rivales) y efectos. Música apagada y efectos encendidos por defecto.
+- 200 expresiones de32×32 (160 en atlas y40 por código),450 diálogos ficticios
+ breves ES/EN,51 bucles musicales originales (menú+50 rivales) y efectos. Música apagada y efectos encendidos por defecto.
 - Reglas legales, jaque/mate/ahogado, enroques, al paso,4 promociones,
  reclamaciones triple/50 y automáticas quíntuple/75; casos habituales de material
  insuficiente. La detección general de posiciones muertas sigue incompleta.

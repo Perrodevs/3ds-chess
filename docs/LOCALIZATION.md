@@ -67,7 +67,7 @@ vídeo descargado. Los recursos privados anteriores permanecen separados.
 
 ## Validación y límites
 
-Los catálogos incluyen menús, perfiles, rivales,369eventos de diálogo, tienda,
+Los catálogos incluyen menús, perfiles, rivales,450eventos de diálogo, tienda,
 logros, estadísticas, academia, puzzles, campaña, retos, Carrera, Supervivencia,
 torneos, aperturas, editor, variantes, biblioteca, resultados, revisión, errores,
 confirmaciones, batería y ayuda. Los detalles de727contratos de contenido están
@@ -79,3 +79,5 @@ fallos de escritura y migración de biblioteca v1 a v2.
 La inspección automatizada de tamaños y cualquier recorrido parcial de Azahar no
 sustituyen revisar las pantallas de una Old 3DS XL física. No se han validado
 físicamente el teclado, fluidez, sonido ni lectura de SD de esta actualización.
+
+50 Rivals añade81 eventos ES/EN, nueve rivalidades y los textos breves de NULL.

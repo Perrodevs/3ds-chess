@@ -38,7 +38,9 @@ passed: valid/forged/unpaid/stale histories, archive reconstruction, absent hist
 4096 cap, zero-ply timeout, legal varied openings, actual advanced Career progression,
 one-time announcements/scenes, truncation/corruption and six injected write faults.
 ARMv6K object-symbol sizing confirms56 bytes for State and104 bytes for the
-complete EndScene (including64 cosmetic board bytes). Existing texture and audio
+complete EndScene (including64 cosmetic board bytes). Comparing archived RC2
+headers with the same target compiler: App6040→6448 (+408 inline bytes),
+EndScene32→104. These are type sizes, not peak memory. Existing texture and audio
 buffer sizes and worker/main stacks are unchanged. No physical RAM measurement.
 
 The live worker receives a copied Style and optional legal opening move, never a

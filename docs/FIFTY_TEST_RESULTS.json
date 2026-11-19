@@ -1,0 +1,152 @@
+{
+  "version": "1.3.0 RC1",
+  "base_commit": "750c05b",
+  "branch": "feature/50-rivals",
+  "physical_hardware_tested": false,
+  "baseline": {
+    "command": "make -j3 test",
+    "exit_code": 0,
+    "unique_host_programs": 43
+  },
+  "host": {
+    "command": "make -j3 test",
+    "exit_code": 0,
+    "unique_programs": 46,
+    "programs": [
+      "test_academy",
+      "test_app",
+      "test_archive",
+      "test_audio_dialogue",
+      "test_audit_ui",
+      "test_battery",
+      "test_bots_ui",
+      "test_clock",
+      "test_clock_ui",
+      "test_composer",
+      "test_composer_ui",
+      "test_core",
+      "test_elon_dialogue",
+      "test_end_scene",
+      "test_fifty_catalog",
+      "test_hints",
+      "test_learning_ui",
+      "test_legacy_ui",
+      "test_localization",
+      "test_match",
+      "test_native_resources",
+      "test_navigation",
+      "test_null_profile",
+      "test_null_ui",
+      "test_openings",
+      "test_openings_ui",
+      "test_polish_ui",
+      "test_preferences",
+      "test_profiles",
+      "test_progression",
+      "test_progression_ui",
+      "test_review",
+      "test_space_scene",
+      "test_space_secret",
+      "test_space_ui",
+      "test_storage",
+      "test_storage_audit",
+      "test_strength",
+      "test_styles",
+      "test_tournament",
+      "test_training",
+      "test_translation",
+      "test_update_ui",
+      "test_variants",
+      "test_variants_ui",
+      "test_worker_stress"
+    ],
+    "perft_initial_depth4": 197281,
+    "music_loops": 51,
+    "dialogue_events": 450,
+    "warnings": 0
+  },
+  "additional_coverage": {
+    "command": "make -j3 test-null-ui test-null-profile test-fifty-catalog",
+    "exit_code": 0,
+    "cases": [
+      "nine independent archive statistics/PGN/replays",
+      "legal Enderman opening variation",
+      "unknown opening data fallback",
+      "profile restore ID reservation",
+      "NULL corruption isolation",
+      "A/B scene skip and same-rival rematch",
+      "ineligible/mismatched scene guards"
+    ],
+    "sample_host_self_play": [
+      "50 rivals; 36 distinct new faces;81 bilingual events;9 bounded legal self-play traces, 5 distinct traces, 64800 nodes, 113 host ms"
+    ]
+  },
+  "sanitizers": {
+    "command": "make sanitize-null-ui sanitize-null-profile",
+    "exit_code": 0,
+    "address": true,
+    "undefined_behavior": true
+  },
+  "arm": {
+    "command": "make -j3 all",
+    "exit_code": 0,
+    "architecture": "ARMv6K",
+    "state_type_bytes": 56,
+    "end_scene_type_bytes": 104,
+    "app_type_bytes": 6448,
+    "pcm_buffer_bytes": 366800,
+    "new_texture_bytes": 0,
+    "stack_increase_bytes": 0,
+    "base_app_type_bytes": 6040,
+    "app_inline_increase_bytes": 408,
+    "base_end_scene_type_bytes": 32,
+    "elf_sizes": {
+      "text": 2606540,
+      "data": 9872,
+      "bss": 40212
+    }
+  },
+  "release_artifacts": {
+    "verification": "tools/build_language_packages.py --local-testing verifies binary/SMDH versions, both target builds and ZIP CRC; SHA manifests accompany artifacts",
+    "distribution": "LOCAL TESTING ONLY",
+    "command": ".venv/bin/python tools/build_language_packages.py --local-testing",
+    "exit_code": 0,
+    "target_verification": "ES, EN and restored ES: 37 project objects and ELF ARMv6K; no Thumb-2 requirement",
+    "binary_sizes": {
+      "ES": {
+        "bytes": 2642996,
+        "rc2_bytes": 2605516,
+        "increase_bytes": 37480
+      },
+      "EN": {
+        "bytes": 2643004,
+        "rc2_bytes": 2605516,
+        "increase_bytes": 37488
+      }
+    }
+  },
+  "emulator": {
+    "version": "Azahar2126.2",
+    "renderer": "Vulkan",
+    "result": "PARTIAL",
+    "observed": [
+      "ten-page selector",
+      "last-page portraits",
+      "locked requirements",
+      "A refuses locked NULL",
+      "B returns",
+      "English NULL-win animation and terminal message"
+    ],
+    "blocked": "Mac locked before visual rematch; human-win animation not observed in emulator",
+    "original_save_files_restored": 6,
+    "original_sha256_match": true
+  },
+  "known_limits": [
+    "physical validation pending",
+    "complete emulator visual coverage pending",
+    "original atlas rights review pending; no public redistribution",
+    "new profile5/archive3 writers require backup for older-version rollback",
+    "general dead-position detection pre-existing limit",
+    "only first4096 eligible games sampled; absent archived history cannot be invented"
+  ]
+}

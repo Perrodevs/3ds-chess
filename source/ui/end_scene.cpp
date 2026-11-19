@@ -119,7 +119,7 @@ void EndScene::drawTop(graphics::Renderer &renderer, int skin) const {
                 renderer.rect(136+(i%8)*16,40+(i/8)*16,16,16,rgb(9,7,18));
         }
         if(frame>20&&frame<150)for(int i=0;i<6;++i)renderer.rect((i*61+frame*7)%380,20+(i*31+frame/3)%160,8+i*2,1,purple);
-        if(frame>=120)centered(renderer,205,nullScene==1?"HE ANALIZADO TUS MOVIMIENTOS":"NO HABIA PREVISTO ESTA JUGADA",purple,1);
+        if(frame>=120)centered(renderer,205,nullScene==1?"HE ANALIZADO TUS MOVIMIENTOS":"NO HABÍA PREVISTO ESTA JUGADA",purple,1);
         if(frame>=145&&firstNullReward)centered(renderer,222,"LOGRO DESBLOQUEADO: ERROR 404",Gold,1);
         return;
     }

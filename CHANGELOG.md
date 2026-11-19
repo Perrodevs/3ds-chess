@@ -4,7 +4,9 @@ This log records actual project changes from the adoption of the local Git workf
 Earlier implementation reports remain in `docs/`; they are not retroactive Git
 releases. No historical commits or version tags are inferred from those reports.
 
-## Unreleased — 50 Rivals
+## Unreleased
+
+## 1.3.0 RC1 — 50 Rivals (physical validation pending)
 
 - Expand stable catalog to IDs0–49, with original code portraits, four expressions,
   nine bilingual events and procedural themes for each new opponent.
@@ -28,6 +30,10 @@ releases. No historical commits or version tags are inferred from those reports.
 - Correct target-specific uint32 min deduction and misleading indentation.
 - Extend corruption regression to recognize an equivalent old-format empty profile
   after a5→4 header change; payload corruption remains rejected.
+- Fix mixed-language target objects on fast EN→ES rebuilds with equal-second
+  timestamps: force all objects on a language change and compare the restored ES
+  binary/metadata byte-for-byte with its packaged copies. Add a real Make plan
+  regression with tied timestamps and a mismatched-binary rejection test.
 - Emulator QA is partial: Mac locked before rematch/remaining scenes. Six original
   saves restored byte-for-byte; no physical hardware testing.
 

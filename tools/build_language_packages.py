@@ -17,6 +17,10 @@ def build_language(lang):
     for ext in ('3dsx','smdh'):shutil.copy2(ROOT/f'dist/3ds-chess.{ext}',dest/f'3ds-chess.{ext}')
     meta=(dest/'3ds-chess.smdh').read_bytes()
     if f'/ {lang} /'.encode('utf-16le') not in meta:raise ValueError('Language metadata mismatch')
+def verify_restored_spanish():
+    for ext in ('3dsx','smdh'):
+        if (ROOT/f'dist/3ds-chess.{ext}').read_bytes() != (ROOT/f'dist/languages/ES/3ds-chess.{ext}').read_bytes():
+            raise ValueError('Restored ES differs from the packaged ES artifact; possible mixed-language objects')
 def main():
     if sys.argv[1:]!=['--local-testing']:raise ValueError('Use --local-testing; resource rights are not cleared for publication')
     python=str(ROOT/'.venv/bin/python')
@@ -26,6 +30,7 @@ def main():
     finally:
         run(['make','-j3','DEFAULT_LANGUAGE=ES','all'],'restore-ES.log')
         run(['make','test-target'],'restore-target.log')
+    verify_restored_spanish()
     run([python,'tools/package.py','--local-testing'],'source-and-base-package.log')
     # Same install paths intentionally: alternatives, not two independent save trees.
     base=ROOT/'dist/3ds-chess-sd.zip'

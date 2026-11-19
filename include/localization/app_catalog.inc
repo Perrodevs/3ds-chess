@@ -382,7 +382,7 @@
     {"NULL: sin historial suficiente", "NULL: not enough history"},
     {"NULL esta estudiando tu estilo", "NULL is studying your style"},
     {"HE ANALIZADO TUS MOVIMIENTOS", "I HAVE ANALYZED YOUR MOVES"},
-    {"NO HABIA PREVISTO ESTA JUGADA", "I DID NOT EXPECT THAT MOVE"},
+    {"NO HABÍA PREVISTO ESTA JUGADA", "I DID NOT EXPECT THAT MOVE"},
     {"LOGRO DESBLOQUEADO: ERROR 404", "ACHIEVEMENT UNLOCKED: ERROR 404"},
 
     {"NULL TERMINAL BOARD", "NULL TERMINAL BOARD"},

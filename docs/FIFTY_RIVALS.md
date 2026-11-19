@@ -1,4 +1,4 @@
-# 50 Rivals — implementation in progress
+# 50 Rivals — 1.3.0 RC1
 
 Base: 1.2.0 RC2, commit750c05b. Work branch: feature/50-rivals.
 No merge, push, stable release or physical test has been performed.
@@ -58,7 +58,7 @@ speaker labeling changed. Restoring the short Elon label and using short names
 for other speakers fixes the footer width and preserves the prior text. Targeted
 Elon dialogue, localization, archive1/2 migration and space UI/secret checks passed
 subsequently. Full post-integration regression subsequently passed46 host programs; ARMv6K
-compilation passed. Final version/package verification remains in progress.
+compilation passed. Final artifacts and verification are listed in FIFTY_RIVALS_COMPLETE.md.
 
 NULL progression, copied adaptive worker inputs, two cosmetic result scenes and
 its earned-only board/achievement are implemented and host tested. See

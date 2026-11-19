@@ -70,7 +70,7 @@ int main(){
   scene.begin(state.session,space::Scene::None,sequence,true);assert(scene.nullSequence()==sequence);
   bool caption=false,achievement=false;
   for(int f=0;f<=180;++f){r.frame();scene.drawTop(r);r.end();for(auto&t:r.visibleTexts()){
-    caption|=t==localization::translate(sequence==1?"HE ANALIZADO TUS MOVIMIENTOS":"NO HABIA PREVISTO ESTA JUGADA");
+    caption|=t==localization::translate(sequence==1?"HE ANALIZADO TUS MOVIMIENTOS":"NO HABÍA PREVISTO ESTA JUGADA");
     achievement|=t==localization::translate("LOGRO DESBLOQUEADO: ERROR 404");}scene.update();}
   assert(caption&&achievement==(sequence==2)&&scene.finished()&&storage::encode(state)==original);
   scene.begin(state.session,space::Scene::None,sequence,false);scene.skip();assert(scene.finished());

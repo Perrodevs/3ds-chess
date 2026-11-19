@@ -70,6 +70,10 @@ def package(root, local_testing=False):
         for required in ('SPACE_LANGUAGE.md','SPACE_LANGUAGE_TEST_RESULTS.json','LOCALIZATION.md'):
             if not (root / 'docs' / required).is_file():
                 raise ValueError('Missing Space & Language document: '+required)
+    if version.startswith('1.3.'):
+        for required in ('FIFTY_RIVALS_COMPLETE.md','FIFTY_TEST_RESULTS.json','NULL_ADAPTATION.md'):
+            if not (root / 'docs' / required).is_file():
+                raise ValueError('Missing 50 Rivals document: '+required)
     docs = ['README.md', 'CHANGELOG.md', 'LICENSE'] + [str(p.relative_to(root)) for p in sorted((root / 'docs').rglob('*'))
                                      if p.is_file() and p.suffix in {'.md', '.json'}]
     sd = [(dist / f'3ds-chess.{extension}', f'3ds/3ds-chess/3ds-chess.{extension}')

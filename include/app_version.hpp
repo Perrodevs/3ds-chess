@@ -1,4 +1,4 @@
 #pragma once
 namespace appinfo {
-inline constexpr auto version = "1.2.0 RC2";
+inline constexpr auto version = "1.3.0 RC1";
 }

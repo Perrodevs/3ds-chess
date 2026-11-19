@@ -1,7 +1,7 @@
-# Catálogo actual — 1.2.0 RC2
+# Catálogo actual — 1.3.0 RC1
 
-Fuente de verdad: `ai::bots`, 41 IDs persistentes 0–40 en nueve páginas.
-Los IDs 0–39 anteriores se conservan; la última página tiene solo Elon.
+Fuente de verdad: `ai::bots`, 50 IDs persistentes0–49 en diez páginas.
+Los IDs0–40 anteriores se conservan, incluyendo Elon40; cada página tiene cinco rivales.
 Cuatro expresiones por rival, nueve diálogos ficticios y un tema musical cada uno.
 
 | ID guardado | Nombre | Rango relativo | Nivel interno |
@@ -47,6 +47,15 @@ Cuatro expresiones por rival, nueve diálogos ficticios y un tema musical cada u
 | 38 | Alex | Normal | 2 |
 | 39 | Jensen Huang | Fuerte | 4 |
 | 40 | Elon Musk (secreto) | Fuerte | 4 |
+| 41 | Garry Kasparov | Fuerte | 5 |
+| 42 | Mikhail Tal | Fuerte | 5 |
+| 43 | Bobby Fischer | Fuerte | 5 |
+| 44 | Ada Wong | Normal | 3 |
+| 45 | Albert Wesker | Fuerte | 4 |
+| 46 | Enderman | Normal | 2 |
+| 47 | GLaDOS | Fuerte | 4 |
+| 48 | Linus Torvalds | Normal | 3 |
+| 49 | NULL | Fuerte | 5 |
 
 Los Elo de referencia de los bots/homenajes son metadata del catálogo anterior,
 no mediciones nuevas, Elo FIDE ni fuerza humana acreditada. Jensen se presenta
@@ -55,6 +64,13 @@ son declaraciones reales. Retratos y procedencias: PORTRAITS.md / ASSET_RIGHTS.m
 
 Los seis presupuestos se conservan. Hay preferencias iniciales de apertura y
 semillas y seis preferencias configurables en `ai::styles`; Elon usa Agresivo.
-No son 41 motores ni una reproducción auténtica de estilos reales.
+No son50 motores ni una reproducción auténtica de estilos reales.
 Elon se desbloquea por perfil tras victorias válidas sobre Byte y Jensen;
 [desbloqueo y persistencia](SPACE_SECRET.md), [auditoría completa](ELON_COMPLETE.md).
+
+
+NULL49 es original y secreto. Requiere Byte2, Elon40, GLaDOS47 y Carrera Diamante
+(36 puntos, progreso validado); no se deducen victorias de contadores sin historial.
+Estadísticas y tendencias son independientes por perfil. Las preferencias de los
+nuevos rivales y sus niveles están en [el inventario](FIFTY_RIVALS.md). Los grupos
+aleatorios de Carrera/torneos conservan0–39, sin expansión automática del progreso.
