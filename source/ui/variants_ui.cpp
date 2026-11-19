@@ -1,3 +1,4 @@
+#include "diagnostics/log.hpp"
 #include "ui/variants_ui.hpp"
 #include "ui/app.hpp"
 #include <algorithm>
@@ -16,7 +17,7 @@ int VariantsUI::file(int sq)const{return state.human==-1?7-sq%8:sq%8;}
 int VariantsUI::row(int sq)const{return state.human==-1?sq/8:7-sq/8;}
 bool VariantsUI::persist(variants::State candidate){
     variants::settle(candidate);
-    if(!ready||!store.save(candidate)){notice="Error SD: cambio no confirmado";noticeFrames=180;worker.stop();return false;}
+    if(!ready||!store.save(candidate)){diagnostics::journal().add(diagnostics::Level::Error,"VARIANT_SAVE_FAILED","variant_state");notice="Error SD: cambio no confirmado";noticeFrames=180;worker.stop();return false;}
     state=std::move(candidate);notation=state.game.notation();return true;
 }
 void VariantsUI::start(){

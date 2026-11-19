@@ -41,6 +41,7 @@ class Renderer {
               int maxChars = 100);
     void rawText(int x, int y, const std::string &, Color color = 0xffffffff, int scale = 1, int maxChars = 100);
     void piece(int p, int x, int y, int skin = 0);
+    static bool hasPortrait(int character);
     void portrait(int character, int expression, int x, int y, int scale = 2);
 #ifndef __3DS__
     void save(const std::string &);

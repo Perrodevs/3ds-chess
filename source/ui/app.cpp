@@ -242,7 +242,32 @@ static std::string capturesLine(const review::Captured &captured, int bySide) {
     }
     return text + (any ? "" : "--");
 }
+namespace {
+const char *diagnosticArea(View view) {
+    switch (view) {
+    case View::Profiles: case View::ProfileSlot: case View::ConfirmProfileDelete: return "profiles";
+    case View::Game: case View::Promotion: case View::Pause: return "game";
+    case View::Result: return "result_scene";
+    case View::Training: case View::Lessons: case View::TrainingEnd: return "training_campaign_academy";
+    case View::Tournament: return "tournament";
+    case View::Career: return "career";
+    case View::Survival: return "survival";
+    case View::Shop: return "shop_inventory";
+    case View::Library: case View::ConfirmDelete: return "library";
+    case View::Trophies: return "trophies";
+    case View::Language: return "language";
+    case View::ComposerWorkshop: return "composer";
+    case View::VariantWorkshop: return "variants";
+    case View::Developer: return "developer";
+    default: return "menu";
+    }
+}
+}
 void App::message(const std::string &s) {
+    // Never log UI text. Some notices contain profile names or other player data.
+    if (s.rfind("Error", 0) == 0 || s.rfind("No se pudo", 0) == 0 ||
+        s.find("sin guardar") != std::string::npos || s.find("danad") != std::string::npos)
+        diagnostics::journal().add(diagnostics::Level::Error, "APP_OPERATION_FAILED", diagnosticArea(view));
     notice = s;
     noticeFrames = 240;
 }
@@ -250,7 +275,7 @@ void App::init() {
     currentLanguage=globalLanguage=localization::packageDefault;
     firstLanguage=profilesEnabled&&!localization::loadLanguage(rootDirectory+"/global-language.dat",globalLanguage);
     currentLanguage=globalLanguage;localization::setLanguage(currentLanguage);
-    audioReady = audio.init();
+    if (!audioReady) prepareAudio();
     if (profilesEnabled) {
         profilesReady = profileManager.init();
         if (profilesReady && !profileManager.migrate()) {
@@ -278,6 +303,8 @@ void App::loadData() {
         message("Perfil nuevo: bienvenido");
     trainingStore.load();
     academyStore.load();
+    if (trainingStore.recovered) diagnostics::journal().add(diagnostics::Level::Warn, "TRAINING_BACKUP_USED", "puzzles_campaign");
+    if (academyStore.recovered) diagnostics::journal().add(diagnostics::Level::Warn, "ACADEMY_BACKUP_USED", "academy");
     preferences.load(dataDirectory + "/ui.dat");
     currentLanguage=globalLanguage;
     if(!localization::loadLanguage(dataDirectory+"/language.dat",currentLanguage)){
@@ -285,6 +312,8 @@ void App::loadData() {
         else message("Archivo de idioma danado; elige de nuevo");
     }
     localization::setLanguage(currentLanguage);
+    diagnostics::journal().add(diagnostics::Level::Info, "PROFILE_LANGUAGE",
+        currentLanguage == localization::Language::English ? "EN" : "ES");
     tournamentStore.load(tournamentState);
     archiveReady = archiveStore.load(archiveState);
     if (!archiveReady && !archiveStore.corrupt) {
@@ -339,6 +368,7 @@ void App::advanceClock(int64_t elapsedMs) {
     hintMove = {};
     auto previousProfile = state.profile;
     chessclock::adjudicateTimeout(state.session.game, side);
+    diagnostics::journal().add(diagnostics::Level::Info, "CLOCK_FLAG", "adjudicated", side);
     selected = -1;
     claimIntent = false;
     if (view == View::Promotion)
@@ -458,6 +488,7 @@ void App::suspend() {
     if (composerUI) composerUI->suspend();
     if (variantsUI) variantsUI->suspend();
     syncClock();
+    diagnostics::journal().add(diagnostics::Level::Info, "APP_SUSPEND", "lifecycle");
     clockSuspended = true;
     tournamentController.stop();
     bot.stop();
@@ -465,8 +496,10 @@ void App::suspend() {
     hintMove = {};
     audio.music(false);
     save();
+    diagnostics::journal().flush();
 }
 void App::resume() {
+    diagnostics::journal().add(diagnostics::Level::Info, "APP_RESUME", "lifecycle");
     lastClockSample = clockNow();
     clockSuspended = false;
 }
@@ -567,6 +600,7 @@ void App::go(View v) {
     if (openingActive && v == View::OpeningStudy) openingPractice = false;
     if (progressionActive && (v == View::Home || v == View::Training || v == View::NewGame ||
         v == View::Profiles || v == View::Modes || v == View::Career || v == View::Survival || v == View::Trophies)) leaveProgression();
+    if (view != v) diagnostics::journal().add(diagnostics::Level::Info, "ENTER_SCREEN", diagnosticArea(v), int(v));
     view = v;
     if (v == View::Tournament) tournamentSaved = true;
     focus = v==View::Language&&currentLanguage==localization::Language::English?1:0;
@@ -609,7 +643,7 @@ int App::rows() const {
     case View::ProfileSlot: return 5;
     case View::ConfirmProfileDelete: return 2;
     case View::Developer:
-        return 6;
+        return 7;
     case View::Language: return 2;
     case View::Options:
         return 8;
@@ -771,6 +805,7 @@ void App::play(chess::Move m) {
 }
 void App::setName(const std::string &name) {
     wantsName = false;
+    diagnostics::journal().add(diagnostics::Level::Debug, "PROFILE_NAME_INPUT", "confirmed_text_omitted");
     if (name.empty())
         return;
     std::string clean;
@@ -799,6 +834,7 @@ void App::showResult() {
     hints.cancel();
     hintMove = {};
     selected = -1;
+    diagnostics::journal().add(diagnostics::Level::Info, "MATCH_RESULT", "terminal_scene", int(state.session.game.result));
     endScene.begin(state.session,pendingScene,pendingNullScene,pendingNullReward);
     pendingNullScene=0;pendingNullReward=false;
     pendingScene=space::Scene::None;
@@ -835,8 +871,10 @@ void App::requestHint() {
     hintMove = {};
     if (hints.request(state.session.game))
         message("Buscando una pista...");
-    else
+    else {
+        diagnostics::journal().add(diagnostics::Level::Warn, "HINT_START_FAILED", "search_request");
         message("No hay una pista disponible");
+    }
 }
 void App::activate() {
     if(view==View::Language){selectLanguage();return;}
@@ -1475,7 +1513,10 @@ void App::update(Input in, int64_t elapsedMs) {
                                state.session.bot, aiTimeBudget, preferences.styleOverride < 0 ?
                                (state.session.bot==49&&nullReady?nullboss::style(nullState):ai::styleForBot(state.session.bot)) : ai::Style(preferences.styleOverride),
                                state.session.bot==49&&nullReady?nullboss::opening(nullState,state.session.game,uint32_t(state.session.id*7919+state.session.game.moves.size()*104729)):chess::Move{}))
-                    message("No se pudo iniciar la IA");
+                    {
+                        diagnostics::journal().add(diagnostics::Level::Error, "AI_THREAD_START_FAILED", "match_worker");
+                        message("No se pudo iniciar la IA");
+                    }
             }
         }
         return;
@@ -1996,8 +2037,8 @@ void App::bottom(Renderer &r) {
         button(r,12,205,296,"Cancelar",false);
     } else if (view == View::Developer) {
         menu({"Ganar partida de prueba", "Forzar tablas de prueba", "Perder partida de prueba",
-              "Cosmeticos y monedas de prueba", "Abrir historial", "Volver al tablero"});
-        paragraph(r, 12, 190, "Los trucos crean una copia temporal. No conceden premios ni alteran tu partida guardada.", gold, 49, 3);
+              "Cosmeticos y monedas de prueba", "Abrir historial", "Volver al tablero", "Diagnosticos"});
+        paragraph(r, 12, 211, "Los trucos son temporales.", gold, 49, 1);
     } else if (view == View::Preferences) {
         menu({std::string("Reducir animaciones: ") + (preferences.reducedMotion ? "si" : "no"),
               std::string("Informacion de pieza: ") + (preferences.pieceInfo ? "si" : "no"),
@@ -2053,8 +2094,11 @@ void App::bottom(Renderer &r) {
         interactionSpeaker = white;
         if (!interaction) { interaction = ai::rivalInteraction(black, white, event); interactionSpeaker = black; }
     }
-    if (noticeFrames > 0)
+    if (noticeFrames > 0) {
+        if (view == View::ProfileSlot && notice.rfind("PROFILE_", 0) == 0)
+            r.text(12, 214, "No se pudo crear el perfil", red, 1, 49);
         r.text(12, 226, notice, flash ? gold : muted, 1, 49);
+    }
     else if (interaction)
         r.rawText(12, 226, std::string(interactionSpeaker == 40 ? "Elon" :
                     interactionSpeaker == 41 ? "Kasparov" : interactionSpeaker == 42 ? "Tal" :

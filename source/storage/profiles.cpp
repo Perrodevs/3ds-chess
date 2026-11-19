@@ -132,8 +132,13 @@ bool Manager::publish(const std::array<Slot, capacity> &candidate, bool migratio
     const auto bytes = encode(candidate,migration);
     std::array<Slot, capacity> verified{}; bool verifiedMigration;
     if (!decode(bytes,verified,verifiedMigration)) { error = "Datos de perfiles no validos"; return false; }
+    if (*createCode) createCode = "PROFILE_INDEX_WRITE_FAILED";
     if (!write(tmp,bytes,fault)) { const int result = errno; std::remove(tmp.c_str()); diagnostics::journal().add(diagnostics::Level::Error, "PROFILE_INDEX_WRITE_FAILED", "index_temporary", result); error = "Error al escribir perfiles"; return false; }
-    if (fault == storage::SaveFault::Backup) { std::remove(tmp.c_str()); error = "Respaldo de perfiles pendiente"; return false; }
+    if (*createCode) createCode = "PROFILE_INDEX_BACKUP_FAILED";
+    if (fault == storage::SaveFault::Backup) {
+        diagnostics::journal().add(diagnostics::Level::Error, "PROFILE_INDEX_BACKUP_FAILED", "backup_injected", EIO);
+        std::remove(tmp.c_str()); error = "Respaldo de perfiles pendiente"; return false;
+    }
     std::array<Slot, capacity> old{}; bool oldMigration;
     std::string oldBytes;
     if (registry(file,old,oldMigration)) {
@@ -143,6 +148,7 @@ bool Manager::publish(const std::array<Slot, capacity> &candidate, bool migratio
             std::remove(tmp.c_str()); error = "Error al respaldar perfiles"; return false;
         }
     }
+    if (*createCode) createCode = "PROFILE_INDEX_COMMIT_FAILED";
     if (fault == storage::SaveFault::Commit || std::rename(tmp.c_str(),file.c_str()) != 0) {
         diagnostics::journal().add(diagnostics::Level::Error, "PROFILE_INDEX_COMMIT_FAILED", "index_rename", fault == storage::SaveFault::Commit ? EIO : errno);
         std::remove(tmp.c_str()); error = "Error al confirmar perfiles"; return false;

@@ -1,3 +1,4 @@
+#include "diagnostics/log.hpp"
 #include "localization/localization.hpp"
 #include "ui/composer_ui.hpp"
 #include "ui/app.hpp"
@@ -26,7 +27,7 @@ const chess::Position&ComposerUI::position()const{
     if(visible==Screen::Record||visible==Screen::RecordMenu||visible==Screen::PuzzlePlay||visible==Screen::PositionPlay||visible==Screen::Promotion)return game.position;
     return draft;
 }
-bool ComposerUI::persist(){if(!ready){notice="Coleccion danada: guardado bloqueado";return false;}if(!store.save()){notice="No se guardo: revisa la tarjeta SD";return false;}return true;}
+bool ComposerUI::persist(){if(!ready){notice="Coleccion danada: guardado bloqueado";return false;}if(!store.save()){diagnostics::journal().add(diagnostics::Level::Error,"COMPOSER_SAVE_FAILED","collection");notice="No se guardo: revisa la tarjeta SD";return false;}return true;}
 bool ComposerUI::save(){return !ready?false:!store.exists&&store.data.positions.empty()&&store.data.puzzles.empty()?true:persist();}
 void ComposerUI::suspend(){stopJob();if(current==Screen::Proof)go(jobReturn);save();}
 void ComposerUI::entry(void*arg){auto*w=static_cast<ComposerUI*>(arg);constexpr uint32_t budget=50000;

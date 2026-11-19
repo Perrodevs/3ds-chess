@@ -10,7 +10,7 @@ class Packaging(unittest.TestCase):
   with tempfile.TemporaryDirectory() as d:
    root=Path(d)
    wanted={'AGENTS.md','CHANGELOG.md','README.md','include/app_version.hpp','tests/native_stubs/3ds.h','assets/source/README.md','docs/ASSET_RIGHTS.md'}
-   forbidden={'private/personal.3dsx','build/profile.dat','dist/game.zip','.venv/token','assets/source/8 Bit Chess.zip','arbitrary.secret','source/example.dSYM/private'}
+   forbidden={'private/personal.3dsx','build/profile.dat','dist/game.zip','.venv/token','assets/source/8 Bit Chess.zip','arbitrary.secret','source/example.dSYM/private','docs/session.log','docs/logs/active'}
    for name in wanted|forbidden:
     p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text('test')
    self.assertEqual(set(map(str,pack.source_members(root))),wanted)

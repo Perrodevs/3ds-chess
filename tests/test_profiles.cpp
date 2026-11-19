@@ -134,7 +134,9 @@ void corruption(const std::string &root) {
     assert(read(fs::path(badRoot)/"profile.dat")=="broken");
     // Recover the main profile through its own legacy backup.
     economy::State old;old.profile.name="Backup";storage::Store store(badRoot);
-    assert(store.save(old)&&store.save(old));write(fs::path(badRoot)/"profile.dat","broken");
+    assert(!store.save(old)); // A normal save must not erase the only corrupt copy.
+    assert(read(fs::path(badRoot)/"profile.dat")=="broken");
+    write(fs::path(badRoot)/"profile.dat.bak",storage::encode(old)); // Restore a known backup offline.
     assert(badLegacy.migrate());economy::State check;storage::Store copy(badLegacy.path(0));
     assert(copy.load(check)&&check.profile.name=="Backup"&&copy.recovered);
 }

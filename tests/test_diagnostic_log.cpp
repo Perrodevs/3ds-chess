@@ -4,6 +4,9 @@
 #include <fstream>
 #include <iostream>
 #include <unistd.h>
+#include <csignal>
+#include <sys/resource.h>
+#include <sys/wait.h>
 namespace fs = std::filesystem;
 using namespace diagnostics;
 static std::string read(const fs::path &path) {
@@ -44,6 +47,23 @@ int main() {
     assert(!blocked.begin(root, "ES"));
     blocked.add(Level::Error, "VISIBLE_IN_RAM", "open_failure");
     assert(blocked.errors() == 1 && !blocked.flush());
+    fs::remove_all(logs / "session.log");
+    Journal limited;
+    assert(limited.begin(root, "ES"));
+    const pid_t child = fork();
+    assert(child >= 0);
+    if (child == 0) {
+        std::signal(SIGXFSZ, SIG_IGN);
+        const rlimit zero{0, 0};
+        if (setrlimit(RLIMIT_FSIZE, &zero) != 0) _exit(2);
+        limited.add(Level::Error, "CAPACITY", "simulated_write_exhaustion");
+        if (limited.flush() || limited.available()) _exit(3);
+        limited.add(Level::Fatal, "AFTER_IO_FAILED", "retained_in_memory");
+        _exit(!limited.errors() || limited.flush() ? 4 : 0);
+    }
+    int status = 0;
+    assert(waitpid(child, &status, 0) == child && WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    limited.end();
     fs::remove_all(root);
     std::cout << "Diagnostic log: filtering, severity, truncation, rotation, marker and failed open passed\n";
 }

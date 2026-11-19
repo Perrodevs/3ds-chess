@@ -16,11 +16,11 @@ ROOT_DIRS = {'source', 'include', 'assets', 'tests', 'tools', 'docs'}
 def source_members(root):
     for directory, dirs, files in os.walk(root):
         base = Path(directory).relative_to(root)
-        dirs[:] = sorted(d for d in dirs if d not in EXCLUDED and not d.endswith('.dSYM')
+        dirs[:] = sorted(d for d in dirs if d not in EXCLUDED and d != 'logs' and not d.endswith('.dSYM')
                          and (base.parts or d in ROOT_DIRS))
         for name in sorted(files):
             relative = base / name
-            if name == '.DS_Store' or (not base.parts and name not in ROOT_FILES):
+            if relative.suffix == '.log' or name == '.DS_Store' or (not base.parts and name not in ROOT_FILES):
                 continue
             if relative.parts[:2] == ('assets', 'source') and name != 'README.md':
                 continue

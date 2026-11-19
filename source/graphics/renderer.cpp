@@ -235,6 +235,12 @@ void Renderer::piece(int p, int x, int y, int skin) {
     image((std::abs(p) - 1) * 16, 64 + std::clamp(skin, 0, 2) * 32 + (p < 0 ? 16 : 0), 12, 12, x, y,
           2);
 }
+bool Renderer::hasPortrait(int character) {
+    if (character >= 40 && character < 50) return true;
+    if (character < 0 || character >= portraits::characterCount) return false;
+    return (character / portraits::rowsPerBank + 1) * 128 <= portraits::width &&
+           (character % portraits::rowsPerBank + 1) * 32 <= portraits::height;
+}
 void Renderer::portrait(int character, int expression, int x, int y, int scale) {
     if(character>=41&&character<50){drawNewRival(*this,character,expression,x,y,scale);return;}
     if(character==40){drawElonPortrait(*this,expression,x,y,scale);return;}

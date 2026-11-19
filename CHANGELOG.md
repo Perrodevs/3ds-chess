@@ -6,6 +6,13 @@ releases. No historical commits or version tags are inferred from those reports.
 
 ## Unreleased
 
+## 1.4.0 RC1 — Diagnostic System
+
+- Run bilingual startup checks and offer extended checks, recent errors, a startup summary and severity controls in Developer.
+- Keep startup out of gameplay when the SD read/write probe fails. Inspect existing profiles without writing to them.
+- Record runtime service failures and menu transitions with stable codes. Exclude diagnostic logs from packages.
+- Preserve unreadable profile files and report the precise stage that prevented creating a profile.
+
 - Add a bounded diagnostic journal with severity filtering, two rotating files and an incomplete-session marker.
 
 - Keep the profile selector usable after a failed legacy migration, report creation stages, and verify temporary profile saves before publishing.

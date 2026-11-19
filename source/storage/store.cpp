@@ -266,7 +266,18 @@ bool Store::save(const economy::State &s, SaveFault fault) {
         return fail(fault == SaveFault::Backup ? "backup_injected" : "rename_injected", EIO);
     }
     economy::State old;
-    if (read(path, old) && rename(path.c_str(), bak.c_str()) != 0) {
+    const bool primaryValid = read(path, old);
+    if (!primaryValid) {
+        const auto possiblyExists = [](const std::string &file) {
+            struct stat info{};
+            return lstat(file.c_str(), &info) == 0 || errno != ENOENT;
+        };
+        if ((possiblyExists(path) || possiblyExists(bak)) && !read(bak, old)) {
+            remove(tmp.c_str());
+            return fail("preserve_unreadable_saves", 0);
+        }
+    }
+    if (primaryValid && rename(path.c_str(), bak.c_str()) != 0) {
         const int error = errno;
         remove(tmp.c_str());
         return fail("rename_backup", error);

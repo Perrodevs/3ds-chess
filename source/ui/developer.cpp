@@ -47,6 +47,7 @@ bool App::beginDeveloperSandbox() {
 }
 void App::developerAction() {
     if (!developerEnabled) { go(View::Game); return; }
+    if (focus == 6) { diagnosticRequested = true; return; }
     if (focus == 5) { go(View::Game); return; }
     if (focus == 4) { openReview(View::Developer); return; }
     if (!beginDeveloperSandbox()) return;

@@ -1,3 +1,5 @@
+#include "diagnostics/console.hpp"
+#include "diagnostics/log.hpp"
 #include "ui/app.hpp"
 #include <3ds.h>
 #include <chrono>
@@ -12,16 +14,26 @@ static void hook(APT_HookType type, void *arg) {
         static_cast<ui::App *>(arg)->resume();
 }
 int main() {
-    graphics::Renderer renderer;
-    if (!renderer.init())
-        return 1;
+    const std::string root = "sdmc:/3ds/3ds-chess";
     mkdir("sdmc:/3ds", 0777);
-    mkdir("sdmc:/3ds/3ds-chess", 0777);
+    mkdir(root.c_str(), 0777);
+    auto language = localization::packageDefault;
+    localization::loadLanguage(root + "/global-language.dat", language);
+    localization::setLanguage(language);
+    auto &log = diagnostics::journal();
+    log.begin(root, language == localization::Language::English ? "EN" : "ES");
+    graphics::Renderer renderer;
+    if (!renderer.init()) {
+        log.add(diagnostics::Level::Fatal, "GRAPHICS_INIT_FAILED", "renderer_targets_atlases");
+        log.end();
+        return 1;
+    }
     {
-        ui::App app("sdmc:/3ds/3ds-chess", true);
-        app.init();
+        ui::App app(root, true);
+        diagnostics::Console diagnostic(root);
+        diagnostic.start(true, false, true, app.prepareAudio());
+        bool initialized = false;
         aptHookCookie cookie;
-        aptHook(&cookie, hook, &app);
         hidSetRepeatParameters(20, 5);
         auto previous = std::chrono::steady_clock::now();
         while (aptMainLoop() && !app.exitRequested) {
@@ -54,6 +66,18 @@ int main() {
                 in.x = t.px;
                 in.y = t.py;
             }
+            if (diagnostic.active()) {
+                if (!initialized && (in.keys & ui::Start)) break;
+                diagnostic.update(in.keys & ui::Up, in.keys & ui::Down, in.keys & ui::A, in.keys & ui::B);
+                if (!initialized && diagnostic.canStartGame()) {
+                    app.init();
+                    initialized = true;
+                    aptHook(&cookie, hook, &app);
+                }
+                if (diagnostic.active()) diagnostic.draw(renderer);
+                else app.draw(renderer);
+                continue;
+            }
             auto now = std::chrono::steady_clock::now();
             auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - previous).count();
             if (elapsed >= 1) {
@@ -64,6 +88,14 @@ int main() {
                 previous = now;
             }
             app.update(in);
+            if (app.diagnosticRequested) {
+                app.diagnosticRequested = false;
+                diagnostic.menu();
+                diagnostic.draw(renderer);
+                continue;
+            }
+            if (elapsed >= 1 && app.view != ui::View::Game && app.view != ui::View::Promotion)
+                log.flush();
             if (app.workshopTextRequested()) {
                 SwkbdState keyboard;
                 swkbdInit(&keyboard, SWKBD_TYPE_NORMAL, 2, 24);
@@ -91,9 +123,13 @@ int main() {
             }
             app.draw(renderer);
         }
-        app.suspend();
-        aptUnhook(&cookie);
+        diagnostic.cancel();
+        if (initialized) {
+            app.suspend();
+            aptUnhook(&cookie);
+        }
     }
+    log.end();
     renderer.shutdown();
     return 0;
 }

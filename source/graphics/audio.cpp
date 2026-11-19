@@ -1,3 +1,4 @@
+#include "diagnostics/log.hpp"
 #include "graphics/audio.hpp"
 #include "ai/bots.hpp"
 #include <cstring>
@@ -42,10 +43,14 @@ bool Audio::init() {
 #ifdef __3DS__
     if (ready)
         return true;
-    if (R_FAILED(ndspInit()))
+    const auto result = ndspInit();
+    if (R_FAILED(result)) {
+        diagnostics::journal().add(diagnostics::Level::Warn, "AUDIO_NDSP_FAILED", "ndsp_init_result", int(result));
         return false;
+    }
     samples = (int16_t *)linearAlloc(effectSampleCapacity * sizeof(int16_t));
     if (!samples) {
+        diagnostics::journal().add(diagnostics::Level::Warn, "AUDIO_BUFFER_FAILED", "effects_alloc");
         ndspExit();
         return false;
     }
@@ -58,6 +63,7 @@ bool Audio::init() {
     musicSamples[0] = (int16_t *)linearAlloc(musicLoopSamples * sizeof(int16_t));
     musicSamples[1] = (int16_t *)linearAlloc(musicLoopSamples * sizeof(int16_t));
     if (!musicSamples[0] || !musicSamples[1]) {
+        diagnostics::journal().add(diagnostics::Level::Warn, "AUDIO_BUFFER_FAILED", "music_alloc");
         // A failed music allocation must not report a fully working audio
         // device. No buffers have been queued yet, so rollback is immediate.
         ndspExit();

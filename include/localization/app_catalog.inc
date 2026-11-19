@@ -386,3 +386,6 @@
     {"LOGRO DESBLOQUEADO: ERROR 404", "ACHIEVEMENT UNLOCKED: ERROR 404"},
 
     {"NULL TERMINAL BOARD", "NULL TERMINAL BOARD"},
+    {"Diagnosticos", "Diagnostics"},
+    {"Los trucos son temporales.", "Cheats are temporary."},
+    {"Migracion pendiente: originales conservados", "Migration pending: originals kept"},

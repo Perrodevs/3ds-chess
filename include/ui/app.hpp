@@ -214,7 +214,7 @@ class App {
     void syncClock();
     chess::Move animMove;
     int animPiece = 0;
-    bool context = false, claimIntent = false, audioReady = false;
+    bool context = false, claimIntent = false, audioReady = false, audioAttempted = false;
     std::string notice;
     int noticeFrames = 0;
     std::vector<std::string> history;
@@ -236,6 +236,11 @@ class App {
     void button(graphics::Renderer &, int, int, int, const std::string &, bool, bool literalLabel=false);
 
   public:
+    bool diagnosticRequested = false;
+    bool prepareAudio() {
+        if (!audioAttempted) { audioAttempted = true; audioReady = audio.init(); }
+        return audioReady;
+    }
     economy::State state;
     View view = View::Title;
     bool exitRequested = false, wantsName = false;
