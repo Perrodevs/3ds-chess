@@ -6,6 +6,8 @@ releases. No historical commits or version tags are inferred from those reports.
 
 ## Unreleased
 
+- Add a bounded diagnostic journal with severity filtering, two rotating files and an incomplete-session marker.
+
 ## 1.3.0 RC1 — 50 Rivals (physical validation pending)
 
 - Expand stable catalog to IDs0–49, with original code portraits, four expressions,
