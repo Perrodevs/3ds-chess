@@ -367,3 +367,12 @@ test-fifty-catalog: build/test_fifty_catalog
 	$(PYTHON) tests/test_content_catalog.py
 	$(PYTHON) tests/test_localization_catalog.py
 test: test-fifty-catalog
+
+build/test_null_profile: $(COMMON) source/archive/archive.cpp source/rivals/null_profile.cpp tests/test_null_profile.cpp $(HEADERS)
+	$(HOST_CXX) $(HOSTFLAGS) $(COMMON) source/archive/archive.cpp source/rivals/null_profile.cpp tests/test_null_profile.cpp -o '$@'
+test-null-profile: build/test_null_profile
+	./build/test_null_profile
+test: test-null-profile
+sanitize-null-profile:
+	$(HOST_CXX) $(HOSTFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer $(COMMON) source/archive/archive.cpp source/rivals/null_profile.cpp tests/test_null_profile.cpp -o build/sanitize_null_profile
+	./build/sanitize_null_profile

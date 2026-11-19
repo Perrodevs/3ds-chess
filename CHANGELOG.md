@@ -12,6 +12,11 @@ releases. No historical commits or version tags are inferred from those reports.
 - Read archive formats1/2 (40/41 rivals); write format3 with50 statistics rows.
 - Preserve the original40 random entrants in existing progression/tournaments.
 
+- Add independently tested NULL1 adaptive sidecar backend: canonical settled
+  histories, first4096 samples, bounded opening preferences, unlock requirements,
+  one-shot event markers, checksums, backups and profile isolation. Live UI/worker
+  integration is still pending.
+
 ## 1.2.0 RC2 — Elon character audit (physical validation pending)
 
 ### Added
