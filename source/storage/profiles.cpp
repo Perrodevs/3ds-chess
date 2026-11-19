@@ -1,5 +1,6 @@
 #include "storage/profiles.hpp"
 #include "storage/store.hpp"
+#include "diagnostics/log.hpp"
 #include <algorithm>
 #include <cerrno>
 #include <cstdio>
@@ -22,7 +23,10 @@ bool exists(const std::string &path) { struct stat s; return lstat(path.c_str(),
 bool directory(const std::string &path) {
     if (::mkdir(path.c_str(), 0777) == 0) return true;
     struct stat s;
-    return errno == EEXIST && lstat(path.c_str(), &s) == 0 && S_ISDIR(s.st_mode);
+    const int mkdirError = errno;
+    if (lstat(path.c_str(), &s) == 0 && S_ISDIR(s.st_mode)) return true;
+    errno = mkdirError;
+    return false;
 }
 bool read(const std::string &path, std::string &out, size_t limit = MaxFile) {
     struct stat s;
@@ -105,17 +109,20 @@ std::string Manager::path(int slot) const {
     return slot >= 0 && slot < capacity && slots[size_t(slot)].occupied
         ? generationPath(slot, slots[size_t(slot)].generation) : std::string();
 }
-bool Manager::init() {
+bool Manager::init(bool readOnly) {
     error.clear(); recovered = false; ready = false;
     const auto base = root + "/profiles";
-    if (!directory(root) || !directory(base)) { error = "No se puede abrir perfiles"; return false; }
+    if (!readOnly && (!directory(root) || !directory(base))) {
+        diagnostics::journal().add(diagnostics::Level::Error, "PROFILE_DIRECTORY_FAILED", "mkdir_profiles", errno);
+        error = "No se puede abrir perfiles"; return false;
+    }
     std::array<Slot, capacity> candidate{}; bool migration = false;
     const auto file = base + "/index.dat";
     if (!registry(file,candidate,migration)) {
         if (registry(file+".bak",candidate,migration)) recovered = true;
-        else if (exists(file) || exists(file+".bak")) { error = "Indice de perfiles danado; archivos conservados"; return false; }
+        else if (exists(file) || exists(file+".bak")) { diagnostics::journal().add(diagnostics::Level::Error, "PROFILE_INDEX_CORRUPT", "index_and_backup"); error = "Indice de perfiles danado; archivos conservados"; return false; }
     }
-    slots = std::move(candidate); migrated = migration; ready = true;
+    slots = std::move(candidate); migrated = migration; ready = !readOnly;
     return true;
 }
 bool Manager::publish(const std::array<Slot, capacity> &candidate, bool migration,
@@ -125,45 +132,80 @@ bool Manager::publish(const std::array<Slot, capacity> &candidate, bool migratio
     const auto bytes = encode(candidate,migration);
     std::array<Slot, capacity> verified{}; bool verifiedMigration;
     if (!decode(bytes,verified,verifiedMigration)) { error = "Datos de perfiles no validos"; return false; }
-    if (!write(tmp,bytes,fault)) { std::remove(tmp.c_str()); error = "Error al escribir perfiles"; return false; }
+    if (!write(tmp,bytes,fault)) { const int result = errno; std::remove(tmp.c_str()); diagnostics::journal().add(diagnostics::Level::Error, "PROFILE_INDEX_WRITE_FAILED", "index_temporary", result); error = "Error al escribir perfiles"; return false; }
     if (fault == storage::SaveFault::Backup) { std::remove(tmp.c_str()); error = "Respaldo de perfiles pendiente"; return false; }
     std::array<Slot, capacity> old{}; bool oldMigration;
     std::string oldBytes;
     if (registry(file,old,oldMigration)) {
         if (!read(file,oldBytes,1024) || !write(file+".bak.tmp",oldBytes) ||
             std::rename((file+".bak.tmp").c_str(),(file+".bak").c_str()) != 0) {
+            diagnostics::journal().add(diagnostics::Level::Error, "PROFILE_INDEX_BACKUP_FAILED", "index_backup", errno);
             std::remove(tmp.c_str()); error = "Error al respaldar perfiles"; return false;
         }
     }
     if (fault == storage::SaveFault::Commit || std::rename(tmp.c_str(),file.c_str()) != 0) {
+        diagnostics::journal().add(diagnostics::Level::Error, "PROFILE_INDEX_COMMIT_FAILED", "index_rename", fault == storage::SaveFault::Commit ? EIO : errno);
         std::remove(tmp.c_str()); error = "Error al confirmar perfiles"; return false;
     }
     slots = candidate; migrated = migration; error.clear(); return true;
 }
 bool Manager::reserve(int slot, uint64_t &generation, std::string &out) {
     const auto base = root + "/profiles/slot_0" + std::to_string(slot+1);
-    if (!directory(base)) { error = "No se puede crear la ranura"; return false; }
+    if (!directory(base)) { diagnostics::journal().add(diagnostics::Level::Error, "PROFILE_SLOT_MKDIR_FAILED", "slot_directory", errno); error = "No se puede crear la ranura"; return false; }
     generation = slots[size_t(slot)].generation;
     for (int tries = 0; tries < 1024 && generation < MaxGeneration; ++tries) {
         ++generation; out = generationPath(slot,generation);
         if (::mkdir(out.c_str(),0777) == 0) return true;
         if (errno != EEXIST) break;
     }
+    diagnostics::journal().add(diagnostics::Level::Error, "PROFILE_RESERVE_FAILED", "generation_directory", errno);
     error = "No se puede reservar un perfil nuevo"; return false;
 }
 bool Manager::create(int slot, const std::string &name, int avatar, storage::SaveFault fault) {
+    using diagnostics::Level;
+    auto &log = diagnostics::journal();
     error.clear();
-    if (!ready || slot < 0 || slot >= capacity || slots[size_t(slot)].occupied ||
-        !validName(name) || avatar < 0 || avatar >= 40) { error = "Perfil o ranura no valido"; return false; }
-    std::string target; uint64_t generation;
-    if (!reserve(slot,generation,target)) return false;
-    economy::State state; state.profile.name = name;
-    storage::Store store(target); economy::State check;
-    if (!store.save(state) || !store.load(check) || storage::encode(state) != storage::encode(check)) {
-        error = "No se pudo verificar el perfil nuevo"; return false;
+    createCode = "PROFILE_SLOT_INVALID";
+    log.add(Level::Info, "PROFILE_CREATE_REQUEST", "slot_zero_based", slot);
+    if (!ready || slot < 0 || slot >= capacity || slots[size_t(slot)].occupied || avatar < 0 || avatar >= 40) {
+        error = "Perfil o ranura no valido";
+        log.add(Level::Error, createCode, "slot_validation", slot);
+        return false;
     }
-    auto candidate = slots; candidate[size_t(slot)] = {true,name,avatar,generation};
-    return publish(candidate,migrated,fault);
+    if (!validName(name)) {
+        createCode = "PROFILE_NAME_INVALID";
+        error = "Nombre o perfil no valido";
+        log.add(Level::Error, createCode, "name_validation");
+        return false;
+    }
+    log.add(Level::Debug, "PROFILE_NAME_VALIDATED", "name_omitted");
+    std::string target;
+    uint64_t generation;
+    createCode = "PROFILE_RESERVE_FAILED";
+    if (!reserve(slot, generation, target)) return false;
+    log.add(Level::Debug, "PROFILE_DIR_READY", "generation_reserved");
+    economy::State state, check;
+    state.profile.name = name;
+    storage::Store store(target);
+    createCode = "PROFILE_DATA_WRITE_FAILED";
+    log.add(Level::Debug, "PROFILE_DATA_READY", "initial_state");
+    if (!store.save(state)) {
+        error = "Error al escribir perfiles";
+        return false;
+    }
+    createCode = "PROFILE_VERIFY_FAILED";
+    if (!store.load(check) || storage::encode(state) != storage::encode(check)) {
+        log.add(Level::Error, createCode, "reopen_and_compare");
+        error = "No se pudo verificar el perfil nuevo";
+        return false;
+    }
+    auto candidate = slots;
+    candidate[size_t(slot)] = {true, name, avatar, generation};
+    createCode = "PROFILE_INDEX_COMMIT_FAILED";
+    if (!publish(candidate, migrated, fault)) return false;
+    createCode = "";
+    log.add(Level::Info, "PROFILE_CREATED", "selector_published", slot);
+    return true;
 }
 bool Manager::rename(int slot, const std::string &name, storage::SaveFault fault) {
     if (!ready || slot < 0 || slot >= capacity || !slots[size_t(slot)].occupied || !validName(name)) {

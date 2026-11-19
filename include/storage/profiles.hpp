@@ -25,7 +25,8 @@ class Manager {
     std::array<Slot, capacity> slots{};
     bool recovered = false;
     std::string error;
-    bool init();
+    const char *createCode = "";
+    bool init(bool readOnly = false);
     bool migrate(storage::SaveFault fault = storage::SaveFault::None);
     std::string path(int slot) const;
     bool create(int slot, const std::string &name, int avatar = 0,

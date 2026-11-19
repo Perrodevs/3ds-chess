@@ -1,3 +1,4 @@
+#include "diagnostics/log.hpp"
 #include "localization/localization.hpp"
 #include "ui/app.hpp"
 #include "app_version.hpp"
@@ -251,7 +252,11 @@ void App::init() {
     currentLanguage=globalLanguage;localization::setLanguage(currentLanguage);
     audioReady = audio.init();
     if (profilesEnabled) {
-        profilesReady = profileManager.init() && profileManager.migrate();
+        profilesReady = profileManager.init();
+        if (profilesReady && !profileManager.migrate()) {
+            diagnostics::journal().add(diagnostics::Level::Warn, "PROFILE_MIGRATION_DEFERRED", "originals_preserved");
+            message("Migracion pendiente: originales conservados");
+        }
         view = firstLanguage?View::Language:View::Profiles;
         if(firstLanguage)focus=currentLanguage==localization::Language::English?1:0;
         if (!profilesReady) message("Perfiles: " + profileManager.error);

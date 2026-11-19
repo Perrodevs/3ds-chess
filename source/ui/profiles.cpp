@@ -1,8 +1,10 @@
+#include "diagnostics/log.hpp"
 #include "ui/app.hpp"
 namespace ui {
 bool App::selectProfile(int index) {
     if (!profilesReady || index < 0 || index >= profiles::capacity ||
         !profileManager.slots[size_t(index)].occupied) return false;
+    diagnostics::journal().add(diagnostics::Level::Info, "PROFILE_SWITCH_REQUEST", "slot_zero_based", index);
     economy::State candidate;
     storage::Store candidateStore(profileManager.path(index));
     if (!candidateStore.load(candidate)) {
@@ -30,6 +32,7 @@ bool App::selectProfile(int index) {
     reviewLines.clear(); reviewExplanation.clear();
     loadData();
     state.profile.name = profileManager.slots[size_t(index)].name;
+    diagnostics::journal().add(diagnostics::Level::Info, "PROFILE_ACTIVATED", "slot_zero_based", index);
     go(View::Title);
     return true;
 }
@@ -38,6 +41,7 @@ void App::profileAction() {
     if (view == View::Profiles) {
         if (focus == 3) { back(); return; }
         profileChoice = focus;
+        diagnostics::journal().add(diagnostics::Level::Debug, "PROFILE_SLOT_SELECTED", "slot_zero_based", focus);
         go(View::ProfileSlot); return;
     }
     if (view == View::ConfirmProfileDelete) {
@@ -55,7 +59,9 @@ void App::profileAction() {
     const auto &slot = profileManager.slots[size_t(profileChoice)];
     if (focus == 0) {
         if (!slot.occupied && !profileManager.create(profileChoice, "Jugador " + std::to_string(profileChoice + 1), profileChoice)) {
-            message("No se pudo crear el perfil"); return;
+            message(profileManager.createCode);
+            diagnostics::journal().flush();
+            return;
         }
         selectProfile(profileChoice);
     } else if (focus == 1) {

@@ -8,6 +8,8 @@ releases. No historical commits or version tags are inferred from those reports.
 
 - Add a bounded diagnostic journal with severity filtering, two rotating files and an incomplete-session marker.
 
+- Keep the profile selector usable after a failed legacy migration, report creation stages, and verify temporary profile saves before publishing.
+
 ## 1.3.0 RC1 — 50 Rivals (physical validation pending)
 
 - Expand stable catalog to IDs0–49, with original code portraits, four expressions,

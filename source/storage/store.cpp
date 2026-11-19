@@ -1,3 +1,5 @@
+#include "diagnostics/log.hpp"
+#include <cerrno>
 #include "storage/store.hpp"
 #include "ai/bots.hpp"
 #include <cstdio>
@@ -214,44 +216,64 @@ bool Store::load(economy::State &s) {
     if (read(directory + "/profile.dat", s))
         return true;
     recovered = read(directory + "/profile.dat.bak", s);
+    auto &log = diagnostics::journal();
+    if (recovered) log.add(diagnostics::Level::Warn, "SAVE_BACKUP_USED", "profile_read");
+    else {
+        struct stat info{};
+        if (stat((directory + "/profile.dat").c_str(), &info) == 0 ||
+            stat((directory + "/profile.dat.bak").c_str(), &info) == 0)
+            log.add(diagnostics::Level::Error, "SAVE_LOAD_FAILED", "profile_decode");
+    }
     return recovered;
 }
 bool Store::save(const economy::State &s, SaveFault fault) {
+    using diagnostics::Level;
+    auto &log = diagnostics::journal();
+    const auto path = directory + "/profile.dat";
+    const auto tmp = path + ".tmp";
+    const auto bak = path + ".bak";
+    auto fail = [&](const char *stage, int result) {
+        log.add(Level::Error, "SAVE_WRITE_FAILED", stage, result);
+        return false;
+    };
     economy::State check;
-    std::string data = encode(s);
-    if (!decode(data, check))
-        return false;
+    const auto data = encode(s);
+    if (!decode(data, check)) return fail("validate_state", 0);
     mkdir(directory.c_str(), 0777);
-    std::string path = directory + "/profile.dat", tmp = path + ".tmp", bak = path + ".bak";
     FILE *f = fopen(tmp.c_str(), "wb");
-    if (!f)
-        return false;
+    if (!f) return fail("open_temporary", errno);
+    const char *stage = nullptr;
+    int result = 0;
+    auto checkIo = [&](bool ok, SaveFault injected, const char *operation) {
+        if (!stage && (!ok || fault == injected)) {
+            stage = operation;
+            result = fault == injected ? EIO : errno;
+        }
+    };
     const size_t intended = fault == SaveFault::Write ? data.size() / 2 : data.size();
-    bool ok = fwrite(data.data(), 1, intended, f) == data.size();
-    ok = fflush(f) == 0 && ok && fault != SaveFault::Flush;
-    int fd = fileno(f);
-    if (ok && (fsync(fd) != 0 || fault == SaveFault::Sync))
-        ok = false;
-    ok = fclose(f) == 0 && ok && fault != SaveFault::Close;
-    if (!ok) {
+    checkIo(fwrite(data.data(), 1, intended, f) == data.size(), SaveFault::Write, "write_temporary");
+    checkIo(fflush(f) == 0, SaveFault::Flush, "flush_temporary");
+    if (!stage) checkIo(fsync(fileno(f)) == 0, SaveFault::Sync, "sync_temporary");
+    checkIo(fclose(f) == 0, SaveFault::Close, "close_temporary");
+    if (!stage && (!read(tmp, check) || encode(check) != data)) stage = "verify_temporary";
+    if (stage) {
         remove(tmp.c_str());
-        return false;
+        return fail(stage, result);
+    }
+    log.add(Level::Debug, "SAVE_TEMP_VERIFIED", "profile");
+    if (fault == SaveFault::Backup || fault == SaveFault::Commit) {
+        remove(tmp.c_str());
+        return fail(fault == SaveFault::Backup ? "backup_injected" : "rename_injected", EIO);
     }
     economy::State old;
-    if (fault == SaveFault::Backup) {
+    if (read(path, old) && rename(path.c_str(), bak.c_str()) != 0) {
+        const int error = errno;
         remove(tmp.c_str());
-        return false;
+        return fail("rename_backup", error);
     }
-    if (read(path, old)) {
-        remove(bak.c_str());
-        if (rename(path.c_str(), bak.c_str()) != 0) {
-            remove(tmp.c_str());
-            return false;
-        }
-    } else
-        remove(path.c_str());
-    if (fault == SaveFault::Commit || rename(tmp.c_str(), path.c_str()) != 0)
-        return false;
+    if (rename(tmp.c_str(), path.c_str()) != 0)
+        return fail("rename_primary", errno);
+    log.add(Level::Debug, "SAVE_COMMITTED", "profile");
     return true;
 }
 bool Store::exportPgn(const economy::State &s) {
