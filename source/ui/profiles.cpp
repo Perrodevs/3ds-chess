@@ -22,6 +22,8 @@ bool App::selectProfile(int index) {
     progressionStore = progression::Store(dataDirectory + "/progression.dat");
     openingStore = openings::Store(dataDirectory + "/openings.dat");
     spaceStore=space::Store(dataDirectory+"/space.dat");
+    nullStore=nullboss::Store(dataDirectory+"/null.dat");
+    nullReady=false;nullState={};nullPending=false;nullUnlockFrames=pendingNullScene=0;pendingNullReward=false;
     activeProfile = profileChoice = index;
     selected = -1; hintMove = {}; claimIntent = false; animationFrames = 0;
     reviewGame = {}; reviewSource = {}; reviewPly = 0;

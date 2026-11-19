@@ -32,5 +32,5 @@ const char *rivalInteraction(int speaker, int opponent, Dialogue event);
 int legacyBotForLevel(int level);
 // Tiny original character preferences, not a reproduction of any player repertoire.
 // Only the first move for each side of an unmodified standard-start game is eligible.
-chess::Move openingMove(int id, const chess::Game &game);
+chess::Move openingMove(int id, const chess::Game &game, uint32_t seed=1);
 } // namespace ai

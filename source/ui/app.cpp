@@ -29,6 +29,7 @@ static void paragraph(Renderer &r, int x, int y, const std::string &text, Color 
 }
 void App::recordCompleted() {
     syncSecret();
+    syncNull();
     if (!archiveReady || developerSandbox || progressionActive || openingActive || trainingActive || tournamentActive || !state.session.active ||
         state.session.game.result == chess::Result::Playing) return;
     auto candidate = archiveState;
@@ -301,7 +302,13 @@ void App::loadData() {
     openingIndex = openingStore.progress.lastOpening; openingBranch = 0;
     secretPending=false;spaceState={};spaceReady=spaceStore.load(spaceState);pendingScene=space::Scene::None;unlockFrames=0;
     if(!spaceReady&&!spaceStore.exists&&!spaceStore.corrupt){space::initialize(spaceState,state.profile.paidId,archiveReady?&archiveState:nullptr);spaceReady=spaceStore.save(spaceState);}
-    syncSecret();
+    nullPending=false;nullState={};nullReady=nullStore.load(nullState);nullUnlockFrames=pendingNullScene=0;pendingNullReward=false;
+    if(!nullReady&&!nullStore.exists&&!nullStore.corrupt){
+        if(nullboss::initialize(nullState,state.profile.paidId,archiveReady?&archiveState:nullptr))nullReady=nullStore.save(nullState);
+    }
+    if(nullReady)state.profile.nextId=std::max(state.profile.nextId,nullState.lastId+1);
+    if(nullStore.corrupt)message("NULL: datos danados, perfil conservado");
+    syncSecret();syncNull();
     composerUI = std::make_unique<ComposerUI>(dataDirectory);
     variantsUI = std::make_unique<VariantsUI>(dataDirectory);
     refresh();
@@ -368,6 +375,7 @@ bool App::commit(const economy::State &previous) {
             state = previous; refresh(); message("Error SD: jugada del modo sin guardar"); return false;
         }
         progressionState = std::move(next);
+        syncNull();
         reconcileProgressionRewards();
         if (state.session.game.result != chess::Result::Playing) showResult();
         return true;
@@ -424,7 +432,7 @@ bool App::save() {
     if (profilesEnabled && activeProfile < 0) return true;
     if (developerSandbox) return store.save(developerOriginal);
     if (openingActive) return store.save(normalState);
-    if (progressionActive) { reconcileProgressionRewards(); return store.save(normalState); }
+    if (progressionActive) { syncNull(); reconcileProgressionRewards(); return store.save(normalState)&&!nullPending; }
     if (trainingActive || tournamentActive) {
         const bool ok = store.save(normalState);
         if (!ok) message("Error al guardar la partida normal");
@@ -436,7 +444,7 @@ bool App::save() {
     economy::settle(state);
     bool ok = store.save(state);
     lastClockSample = clockNow();
-    if (ok) { recordCompleted(); return !secretPending; }
+    if (ok) { recordCompleted(); return !secretPending && !nullPending; }
     state.profile = previousProfile;
     message("Error al guardar en SD");
     return false;
@@ -626,6 +634,7 @@ int App::rowY() const {
     if (view == View::ConfirmDelete || view == View::ConfirmProfileDelete || view == View::ConfirmEndAttempt) return 122;
     if (view == View::Result || view == View::TrainingEnd)
         return 130;
+    if(view==View::Bots&&botChoice==49)return 178;
     if (view == View::Bots || view == View::Lessons)
         return 172;
     return view == View::Shop        ? 154
@@ -645,6 +654,7 @@ int App::rowH() const {
 }
 void App::startGame() {
     if(state.session.active&&state.session.game.result!=chess::Result::Playing&&!save())return;
+    if(state.settings.bot==49&&!nullUnlocked()){message("NULL: Byte, Elon, GLaDOS y Carrera Diamante");return;}
     if(state.settings.bot==40&&!secretUnlocked()){message("Rival secreto: vence a Byte y Jensen en IA");return;}
     auto old = state;
     hints.cancel();
@@ -661,6 +671,7 @@ void App::startGame() {
     reactionFrames = 0;
     refresh();
     go(View::Game);
+    if(state.session.bot==49)message(nullState.games<3?"NULL: sin historial suficiente":"NULL esta estudiando tu estilo");
 }
 void App::finish() {
     if (trainingActive || tournamentActive || developerSandbox || progressionActive) return;
@@ -783,7 +794,8 @@ void App::showResult() {
     hints.cancel();
     hintMove = {};
     selected = -1;
-    endScene.begin(state.session,pendingScene);
+    endScene.begin(state.session,pendingScene,pendingNullScene,pendingNullReward);
+    pendingNullScene=0;pendingNullReward=false;
     pendingScene=space::Scene::None;
     if (preferences.reducedMotion) endScene.skip();
     view = View::Result;
@@ -983,6 +995,7 @@ void App::activate() {
     if (view == View::Bots) {
         if (focus == 0) {
             auto old = state;
+            if(botChoice==49&&!nullUnlocked()){message("NULL: Byte, Elon, GLaDOS y Carrera Diamante");return;}
             if(botChoice==40&&!secretUnlocked()){message("Rival secreto: vence a Byte y Jensen en IA");return;}
             state.settings.bot = botChoice;
             state.settings.level = ai::botAt(botChoice).engineLevel;
@@ -1264,6 +1277,7 @@ void App::activate() {
 void App::update(Input in, int64_t elapsedMs) {
     localization::setLanguage(currentLanguage);
     if(unlockFrames>0)--unlockFrames;
+    if(nullUnlockFrames>0)--nullUnlockFrames;
     battery.update(uint64_t(std::chrono::duration_cast<std::chrono::milliseconds>(clockNow().time_since_epoch()).count()));
     const View entryView = view;
     struct ScopedClockMode {
@@ -1350,11 +1364,11 @@ void App::update(Input in, int64_t elapsedMs) {
     }
     if (view == View::Home && ((in.keys & Select) || (in.touch && in.x >= 12 && in.x < 308 && in.y >= 224 && in.y < 240))) { go(View::Modes); return; }
     if (view == View::Trophies && in.touch && in.y >= 170 && in.y < 191) {
-        if (in.x >= 12 && in.x < 152) trophyIndex = (trophyIndex + 18) % 19;
-        else if (in.x >= 166 && in.x < 308) trophyIndex = (trophyIndex + 1) % 19;
+        if (in.x >= 12 && in.x < 152) trophyIndex = (trophyIndex + 19) % 20;
+        else if (in.x >= 166 && in.x < 308) trophyIndex = (trophyIndex + 1) % 20;
         return;
     }
-    if (view == View::Trophies && (in.keys & (Left | Right))) trophyIndex = (trophyIndex + ((in.keys & Left) ? 18 : 1)) % 19;
+    if (view == View::Trophies && (in.keys & (Left | Right))) trophyIndex = (trophyIndex + ((in.keys & Left) ? 19 : 1)) % 20;
     if ((in.keys & Select) && view == View::Game) {
         if (developerEnabled) go(View::Developer);
         else openReview(View::Game);
@@ -1453,7 +1467,9 @@ void App::update(Input in, int64_t elapsedMs) {
                                uint32_t(state.session.id * 7919 +
                                         state.session.game.moves.size() * 104729 +
                                         ai::botAt(state.session.bot).seedSalt),
-                               state.session.bot, aiTimeBudget, preferences.styleOverride < 0 ? ai::styleForBot(state.session.bot) : ai::Style(preferences.styleOverride)))
+                               state.session.bot, aiTimeBudget, preferences.styleOverride < 0 ?
+                               (state.session.bot==49&&nullReady?nullboss::style(nullState):ai::styleForBot(state.session.bot)) : ai::Style(preferences.styleOverride),
+                               state.session.bot==49&&nullReady?nullboss::opening(nullState,state.session.game,uint32_t(state.session.id*7919+state.session.game.moves.size()*104729)):chess::Move{}))
                     message("No se pudo iniciar la IA");
             }
         }
@@ -1486,7 +1502,7 @@ void App::update(Input in, int64_t elapsedMs) {
         if (in.keys & Down)
             focus = (focus + 1) % count;
         if (view == View::Shop && (in.keys & (Left | Right))) {
-            shopIndex = (shopIndex + ((in.keys & Left) ? 12 : 1)) % 13;
+            shopIndex = (shopIndex + ((in.keys & Left) ? economy::productCount-1 : 1)) % economy::productCount;
         } else if (view == View::NewGame && (in.keys & (Left | Right)) && focus < 6) {
             if (focus == 5 && (in.keys & Left)) {
                 auto old = state;
@@ -1505,7 +1521,7 @@ void App::update(Input in, int64_t elapsedMs) {
                 focus = row;
                 activate();
             } else if (view == View::Shop && in.y >= 36 && in.y < 62) {
-                shopIndex = (shopIndex + (in.x < 160 ? 12 : 1)) % 13;
+                shopIndex = (shopIndex + (in.x < 160 ? economy::productCount-1 : 1)) % economy::productCount;
             }
         }
         if ((in.keys & A) && !in.touch)
@@ -1545,7 +1561,7 @@ void App::board(Renderer &r) {
                            rgb(190, 173, 212), rgb(209, 180, 107)};
     const Color dark[] = {rgb(88, 86, 96), rgb(32, 61, 101), rgb(53, 83, 67), rgb(80, 55, 108),
                           rgb(97, 69, 41)};
-    Color l = light[theme], d = dark[theme];
+    Color l = theme==economy::NullBoard?rgb(105,69,135):light[std::clamp(theme,0,4)], d = theme==economy::NullBoard?rgb(23,18,35):dark[std::clamp(theme,0,4)];
     if (state.profile.equipped[2] == 7) {
         l = rgb(205, 193, 182);
         d = rgb(116, 122, 148);
@@ -1556,6 +1572,9 @@ void App::board(Renderer &r) {
     r.screenBegin(0, bg);
     r.border(10, 6, 228, 228, state.profile.equipped[3] == 10 ? gold : muted,
              state.profile.equipped[3] ? 2 : 1);
+    if(theme==economy::NullBoard){
+        for(int i=0;i<14;++i){r.rect(12+i*16,5,5,2,rgb(181,101,238));r.rect(12+i*16,234,5,2,rgb(181,101,238));}
+    }
     auto legal = selected >= 0 && view != View::Review ? p.legal() : chess::MoveList{};
     int skin = state.profile.equipped[1] == 5 ? 1 : state.profile.equipped[1] == 6 ? 2 : 0;
     bool check = p.check(p.side);
@@ -1771,7 +1790,10 @@ void App::bottom(Renderer &r) {
                 r.border(x, 112, 56, 43, gold, 2);
             r.text(x + 20, 147, std::to_string(id + 1), id == botChoice ? gold : muted);
         }
-        r.text(12, 160,
+        if(botChoice==49){
+            r.text(12,157,std::string(nullState.requirements&1?"[X] ":"[ ] ")+"Byte  "+(nullState.requirements&2?"[X] ":"[ ] ")+"Elon  "+(nullState.requirements&4?"[X] ":"[ ] ")+"GLaDOS",muted,1,49);
+            r.text(12,168,nullUnlocked()?"NULL disponible / estudia tu estilo":nullState.requirements&8?"[X] Carrera: division Diamante":"[ ] Carrera: division Diamante (36 puntos)",muted,1,49);
+        } else r.text(12, 160,
                botChoice==40&&!secretUnlocked()?"Rival secreto: vence a Byte y Jensen en IA":
                botChoice==40?"INVITADO ESPECIAL / FICTICIO":
                opponent.source    ? "Elo de referencia; motor propio."
@@ -1928,7 +1950,7 @@ void App::bottom(Renderer &r) {
     } else if (view == View::Shop) {
         auto &item = economy::products[shopIndex];
         r.text(12, 41, "< " + std::string(item.name) + " >", gold, 1, 49);
-        r.text(12, 58, "PRECIO " + std::to_string(item.price) + " CC", muted);
+        r.text(12,58,shopIndex==economy::NullBoard?"Premio: vence a NULL":"PRECIO "+std::to_string(item.price)+" CC",muted,1,27);
         r.text(180, 58, (state.profile.unlocked & (1u << shopIndex)) ? "DESBLOQUEADO" : "BLOQUEADO",
                muted, 1, 21);
         const Color lights[] = {rgb(179, 169, 130), rgb(118, 174, 193), rgb(176, 194, 144),
@@ -1939,7 +1961,7 @@ void App::bottom(Renderer &r) {
         for (int y = 0; y < 3; ++y)
             for (int x = 0; x < 8; ++x)
                 r.rect(64 + x * 24, 78 + y * 24, 24, 24,
-                       (x + y) % 2 ? lights[palette] : darks[palette]);
+                       (x+y)%2 ? (palette==5||palette==economy::NullBoard?rgb(105,69,135):lights[std::clamp(palette,0,4)]) : (palette==5||palette==economy::NullBoard?rgb(23,18,35):darks[std::clamp(palette,0,4)]));
         r.piece(chess::Knight, 87, 102, item.category == 1 ? item.palette : 0);
         r.piece(-chess::Queen, 183, 102, item.category == 1 ? item.palette : 0);
         if (item.category == 2)
@@ -1992,9 +2014,9 @@ void App::bottom(Renderer &r) {
                muted, 1, 49);
         const char *names[] = {"Primera victoria", "10 victorias",   "50 partidas",
                                "Vencer avanzado",  "Primer enroque", "Primera promocion",
-                               "Primer jaque mate"};
-        for (int i = 0; i < 7; ++i)
-            r.text(12, 96 + i * 15,
+                               "Primer jaque mate", "ERROR 404"};
+        for (int i = 0; i < 8; ++i)
+            r.text(12, 96 + i * 13,
                    std::string(p.achievements & (1u << i) ? "[X] " : "[ ] ") + names[i],
                    p.achievements & (1u << i) ? gold : muted);
         button(r, 12, 205, 296, "Volver / SELECT: estadisticas nuevas", false);

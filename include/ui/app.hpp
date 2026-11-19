@@ -18,6 +18,7 @@
 #include "platform/battery.hpp"
 #include "localization/localization.hpp"
 #include "space/secret.hpp"
+#include "rivals/null_profile.hpp"
 #include <memory>
 #include "training/training.hpp"
 #include "training/academy.hpp"
@@ -92,6 +93,12 @@ class App {
     bool spaceReady=false, secretPending=false;
     int unlockFrames=0;
     space::Scene pendingScene=space::Scene::None;
+    nullboss::Store nullStore;
+    nullboss::State nullState;
+    bool nullReady=false, nullPending=false;
+    int nullUnlockFrames=0, pendingNullScene=0;
+    bool pendingNullReward=false;
+    void syncNull();
     void syncSecret();
     void selectLanguage();
     void drawUnlock(graphics::Renderer &);
@@ -232,7 +239,7 @@ class App {
     economy::State state;
     View view = View::Title;
     bool exitRequested = false, wantsName = false;
-    explicit App(const std::string &path, bool useProfiles = false) : rootDirectory(path), spaceStore(path+"/space.dat"), profilesEnabled(useProfiles), profileManager(path), openingStore(path + "/openings.dat"), progressionStore(path + "/progression.dat"), store(path), dataDirectory(path), tournamentStore(path + "/tournament.dat"), archiveStore(path), trainingStore(path + "/training.dat"), academyStore(path + "/academy.dat") {}
+    explicit App(const std::string &path, bool useProfiles = false) : rootDirectory(path), spaceStore(path+"/space.dat"), nullStore(path+"/null.dat"), profilesEnabled(useProfiles), profileManager(path), openingStore(path + "/openings.dat"), progressionStore(path + "/progression.dat"), store(path), dataDirectory(path), tournamentStore(path + "/tournament.dat"), archiveStore(path), trainingStore(path + "/training.dat"), academyStore(path + "/academy.dat") {}
     ~App() {
         if (composerUI) composerUI->suspend();
         if (variantsUI) variantsUI->suspend();
@@ -247,6 +254,7 @@ class App {
     void acceptWorkshopText(const std::string &text, bool confirmed) { if (composerUI) composerUI->acceptText(text,confirmed); }
     void setBatterySource(platform::BatterySource source, void *context=nullptr) { battery.setSource(source,context); }
     localization::Language uiLanguage() const { return currentLanguage; }
+    bool nullUnlocked() const { return nullReady && nullState.unlocked; }
     bool secretUnlocked() const { return spaceReady && spaceState.unlocked; }
     void init();
     void update(Input, int64_t elapsedMs = -1);

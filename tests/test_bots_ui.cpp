@@ -27,6 +27,8 @@ int main() {
     space::State secret;assert(space::initialize(secret,0));
     secret.byteWon=secret.jensenWon=secret.unlocked=secret.unlockAnnounced=true;
     assert(space::Store(std::string(path)+"/space.dat").save(secret));
+    nullboss::State secretNull;assert(nullboss::initialize(secretNull,0));secretNull.requirements=15;secretNull.unlocked=secretNull.announced=true;
+    assert(nullboss::Store(std::string(path)+"/null.dat").save(secretNull));
     graphics::Renderer renderer;
     assert(renderer.init());
     for (int id = 0; id < ai::botCount; ++id) {

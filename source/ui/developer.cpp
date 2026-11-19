@@ -52,7 +52,7 @@ void App::developerAction() {
     if (!beginDeveloperSandbox()) return;
     selected = -1; hintMove = {}; animationFrames = 0;
     if (focus == 3) {
-        state.profile.unlocked = (1u << 13) - 1;
+        state.profile.unlocked = (1u << economy::productCount) - 1;
         state.profile.coins = 10000;
         state.profile.equip(4); state.profile.equip(6);
         go(View::Game);

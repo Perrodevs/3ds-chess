@@ -7,7 +7,8 @@ struct Product {
     const char *name;
     int price, category, palette;
 };
-extern const Product products[13];
+inline constexpr int productCount=14, NullBoard=13, Error404=7;
+extern const Product products[productCount];
 struct Rewards {
     int win = 100, draw = 30, loss = 10, bonusPerLevel = 15, achievement = 25;
 };

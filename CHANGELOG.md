@@ -14,8 +14,22 @@ releases. No historical commits or version tags are inferred from those reports.
 
 - Add independently tested NULL1 adaptive sidecar backend: canonical settled
   histories, first4096 samples, bounded opening preferences, unlock requirements,
-  one-shot event markers, checksums, backups and profile isolation. Live UI/worker
-  integration is still pending.
+  one-shot event markers, checksums, backups and profile isolation.
+- Integrate NULL locks and permanent requirements, brief bilingual reveal, per-profile
+  model lifecycle and copied adaptive worker inputs. Restore future IDs from the
+  independent model marker; never infer White openings from Black-only histories.
+- Add two skippable180-frame cosmetic NULL sequences; preserve ordinary/Elon scenes.
+- Add free earned-only NULL board13 and ERROR404 achievement bit7/trophy19.
+  Achievement uses the existing25-coin rule; normal competitive reward formulas stay.
+- Write profile5, preserving readers1–4 with their old inventory bounds. Read old
+  archives1/2 and write3; new writer formats cannot be reopened by older builds.
+- Add bounded Enderman opening variety and safely render the new purple board in
+  games/review/shop; retain existing personalized palettes and piece styles.
+- Correct target-specific uint32 min deduction and misleading indentation.
+- Extend corruption regression to recognize an equivalent old-format empty profile
+  after a5→4 header change; payload corruption remains rejected.
+- Emulator QA is partial: Mac locked before rematch/remaining scenes. Six original
+  saves restored byte-for-byte; no physical hardware testing.
 
 ## 1.2.0 RC2 — Elon character audit (physical validation pending)
 

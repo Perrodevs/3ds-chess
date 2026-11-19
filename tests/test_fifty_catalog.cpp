@@ -11,6 +11,10 @@
 #include <unistd.h>
 int main(){
  assert(ai::botCount==50&&ai::publicBotCount==40);
+ chess::Game initial;std::set<std::string> endermanOpenings;
+ for(uint32_t seed=1;seed<=20;++seed){auto m=ai::openingMove(46,initial,seed);auto legal=initial.position.legal();assert(std::find(legal.begin(),legal.end(),m)!=legal.end());endermanOpenings.insert(m.uci());}
+ assert(endermanOpenings.size()==4);
+
  const char *names[]={"Garry Kasparov","Mikhail Tal","Bobby Fischer","Ada Wong","Albert Wesker","Enderman","GLaDOS","Linus Torvalds","NULL"};
  assert(std::string(ai::botAt(40).name)=="Elon Musk");
  const int pairs[][2]={{41,3},{42,43},{44,31},{45,34},{46,37},{47,2},{48,39},{49,40},{49,2}};

@@ -16,6 +16,9 @@ class EndScene {
     static constexpr int Duration = 180;
     int frame = Duration, limit = Duration;
     space::Scene special = space::Scene::None;
+    int nullScene=0;
+    bool firstNullReward=false;
+    std::array<int8_t,64> terminalBoard{};
     int loser = 0;
     int winner = 0;
     bool local = false;
@@ -23,7 +26,8 @@ class EndScene {
     const char *headline = "PARTIDA EN CURSO";
 
   public:
-    void begin(const economy::Session &, space::Scene = space::Scene::None);
+    void begin(const economy::Session &, space::Scene = space::Scene::None, int nullSequence=0, bool firstReward=false);
+    int nullSequence() const { return nullScene; }
     space::Scene scene() const { return special; }
     void update();
     void skip();

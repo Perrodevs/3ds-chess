@@ -7,7 +7,7 @@
 namespace ai {
 void Worker::entry(void *arg) {
     auto *w = static_cast<Worker *>(arg);
-    auto opening = w->botId >= 0 ? openingMove(w->botId, w->snapshot) : chess::Move{};
+    auto opening = w->prepared.from >= 0 ? w->prepared : w->botId >= 0 ? openingMove(w->botId, w->snapshot,w->seed) : chess::Move{};
     if (opening.from >= 0 && !w->cancel.load(std::memory_order_relaxed)) {
         w->answer = Answer{};
         w->answer.move = opening;
@@ -20,9 +20,14 @@ void Worker::entry(void *arg) {
     }
     w->done.store(true, std::memory_order_release);
 }
-bool Worker::start(const chess::Game &g, int l, uint32_t s, int bot, int budgetMs, Style requestedStyle) {
+bool Worker::start(const chess::Game &g, int l, uint32_t s, int bot, int budgetMs, Style requestedStyle, chess::Move preparedMove) {
     stop();
     snapshot = g;
+    prepared={};
+    if(bot==49&&g.result==chess::Result::Playing&&g.moves.size()<=1&&g.initialFen==chess::Position::initial().fen()){
+        auto legal=g.position.legal();
+        if(std::find(legal.begin(),legal.end(),preparedMove)!=legal.end())prepared=preparedMove;
+    }
     level = l;
     botId = bot;
     timeBudgetMs = budgetMs;

@@ -37,7 +37,7 @@ std::string encode(const economy::State &s) {
         o << m.uci() << ' ';
     o << '\n' << p.legacyCoinsClaimed << '\n';
     std::string payload = o.str();
-    return "3DSCHESS 4 " + std::to_string(checksum(payload)) + "\n" + payload;
+    return "3DSCHESS 5 " + std::to_string(checksum(payload)) + "\n" + payload;
 }
 bool decode(const std::string &data, economy::State &out) {
     if (data.size() > 1500000)
@@ -50,7 +50,7 @@ bool decode(const std::string &data, economy::State &out) {
     int version;
     uint32_t sum;
     if (!(h >> magic >> version >> sum) || h >> extra || magic != "3DSCHESS" ||
-        (version != 1 && version != 2 && version != 3 && version != 4))
+        (version != 1 && version != 2 && version != 3 && version != 4 && version != 5))
         return false;
     std::string body = data.substr(nl + 1);
     if (checksum(body) != sum)
@@ -66,12 +66,12 @@ bool decode(const std::string &data, economy::State &out) {
     if (p.name.empty() || p.name.size() > 24 || p.coins > 1000000000 || p.completed > 10000000 ||
         p.wins > p.completed || p.losses > p.completed || p.draws > p.completed ||
         p.wins + p.losses + p.draws != p.completed || p.highest < -1 || p.highest > 5 ||
-        !(p.unlocked & 1) || p.unlocked >= 8192 || p.achievements >= 128 || p.nextId == 0 ||
+        !(p.unlocked & 1) || p.unlocked >= (version>=5?16384u:8192u) || p.achievements >= (version>=5?256u:128u) || p.nextId == 0 ||
         p.nextId > 1000000000 || p.paidId >= p.nextId)
         return false;
     for (int i = 0; i < 5; ++i) {
         int e;
-        if (!(in >> e) || e < 0 || e >= 13 || !(p.unlocked & (1u << e)) ||
+        if (!(in >> e) || e < 0 || e >= (version>=5?economy::productCount:13) || !(p.unlocked & (1u << e)) ||
             (e != 0 && economy::products[e].category != i))
             return false;
         p.equipped[i] = e;

@@ -31,3 +31,17 @@ Las identidades/personas y marcas aludidas no son una afiliación ni se licencia
 por la licencia MIT del código. Sus diálogos son ficción, no citas. El tema nuevo
 es síntesis procedural original. Los recursos privados y atlas anteriores
 conservan las restricciones del inventario; los paquetes siguen siendo locales.
+
+## 50 Rivals
+
+IDs41–49 use original code drawings in include/graphics/rival_sprites.hpp
+(36 new expressions), original brief fictional dialogue and existing procedural
+music synthesis with nine new ID seeds. NULL is an original digital character;
+his terminal board and cosmetic scenes use original rectangle/piece rendering.
+No new downloaded pictures, recordings, video, atlas or licensed character artwork
+was imported. Kasparov/Tal/Fischer/Linus are fictional homages to real people;
+Ada/Wesker/Enderman/GLaDOS identities belong to their respective owners. Original
+code does not license those identities or imply endorsement. Distribution review
+is still required for the pre-existing mixed atlas. Full binaries/source ZIPs are
+local owner QA artifacts, never a publicly cleared edition. Personal Cosunosuke
+source/binaries stay separate and were not included in this update's packages.

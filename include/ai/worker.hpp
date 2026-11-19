@@ -19,12 +19,13 @@ class Worker {
     Style style = Style::Balanced;
     std::atomic<bool> cancel{false}, done{false};
     Answer answer;
+    chess::Move prepared;
     static void entry(void *);
 
   public:
     bool running = false;
     ~Worker() { stop(); }
-    bool start(const chess::Game &, int, uint32_t, int bot = -1, int budgetMs = 0, Style style = Style::Balanced);
+    bool start(const chess::Game &, int, uint32_t, int bot = -1, int budgetMs = 0, Style style = Style::Balanced, chess::Move prepared = {});
     bool poll(Answer &);
     // Consume a finished result only if its complete input still matches the game.
     bool poll(const chess::Game &, Answer &);

@@ -83,7 +83,12 @@ void corruptionAndEconomy() {
     }
     for (size_t offset=0;offset<bytes.size();++offset) {
         auto changed=bytes; changed[offset]^=1;
-        assert(!storage::decode(changed,out));
+        // Header version is outside the payload checksum. Version5 ->4 is a
+        // valid old-format empty profile, not corrupt payload. Check equivalence.
+        if(offset==9&&changed.rfind("3DSCHESS 4 ",0)==0){
+            State compatible;assert(storage::decode(changed,compatible));
+            assert(storage::encode(compatible)==bytes);
+        }else assert(!storage::decode(changed,out));
         assert(storage::encode(out)==sentinel);
     }
     for (int mode : {0,1,2}) {

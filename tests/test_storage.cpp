@@ -41,7 +41,7 @@ int main() {
     State loaded;
     assert(storage::decode(storage::encode(s), loaded));
     assert(!storage::decode("broken", loaded));
-    assert(storage::encode(s).rfind("3DSCHESS 4 ", 0) == 0);
+    assert(storage::encode(s).rfind("3DSCHESS 5 ", 0) == 0);
     for (int id = 0; id < ai::botCount; ++id) {
         State botState;
         botState.settings.bot = id;
@@ -123,7 +123,7 @@ int main() {
         assert(move.uci() == whiteOpenings[id % 5]);
         assert(opening.moves.empty());
         assert(opening.play({chess::square("e2"), chess::square("e4"), 0}));
-        assert(ai::openingMove(id, opening).uci() == (id < 5 ? e4Replies[id] : "e7e5"));
+        assert(ai::openingMove(id, opening).uci() == (id < 5 ? e4Replies[id] : id==46 ? "c7c5" : "e7e5"));
         assert(opening.play(ai::openingMove(id, opening)));
         assert(ai::openingMove(id, opening).from < 0);
         opening = chess::Game();
@@ -164,7 +164,7 @@ int main() {
     assert(loaded.session.game.positions.size() == 3);
     const std::string legacyFen = loaded.session.game.position.fen();
     const std::string upgraded = storage::encode(loaded);
-    assert(upgraded.rfind("3DSCHESS 4 ", 0) == 0);
+    assert(upgraded.rfind("3DSCHESS 5 ", 0) == 0);
     assert(storage::decode(upgraded, loaded));
     assert(loaded.session.game.position.fen() == legacyFen && loaded.profile.coins == 275);
     std::string future = storage::encode(State());
@@ -187,7 +187,7 @@ int main() {
     std::ifstream migrated(std::string(legacyPath) + "/profile.dat");
     std::string migrationHeader;
     std::getline(migrated, migrationHeader);
-    assert(migrationHeader.rfind("3DSCHESS 4 ", 0) == 0);
+    assert(migrationHeader.rfind("3DSCHESS 5 ", 0) == 0);
     std::remove((std::string(legacyPath) + "/profile.dat").c_str());
     std::remove((std::string(legacyPath) + "/profile.dat.bak").c_str());
     rmdir(legacyPath);

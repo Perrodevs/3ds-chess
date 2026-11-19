@@ -57,7 +57,7 @@ SpaceVisual spaceVisual(space::Scene scene, int frame) {
     }
     return v;
 }
-void EndScene::begin(const economy::Session &session, space::Scene scene) {
+void EndScene::begin(const economy::Session &session, space::Scene scene, int nullSequence, bool firstReward) {
     const bool humanWon = (session.game.result == chess::Result::WhiteWin && session.human == 1) ||
                           (session.game.result == chess::Result::BlackWin && session.human == -1);
     const bool decisive = session.game.result == chess::Result::WhiteWin || session.game.result == chess::Result::BlackWin;
@@ -65,6 +65,10 @@ void EndScene::begin(const economy::Session &session, space::Scene scene) {
         scene == space::Scene::Roadster || scene == space::Scene::Rocket;
     special = session.bot == 40 && session.mode == 0 && (session.human == 1 || session.human == -1) &&
               decisive && matchesResult ? scene : space::Scene::None;
+    nullScene=session.bot==49&&session.mode==0&&(session.human==1||session.human==-1)&&decisive&&
+        nullSequence==(humanWon?2:1)?nullSequence:0;
+    firstNullReward=nullScene==2&&firstReward;
+    for(size_t i=0;i<64;++i)terminalBoard[i]=int8_t(session.game.position.board[i]);
     limit = special==space::Scene::Rocket?240:special==space::Scene::FailedRocket?120:Duration;
     result = session.game.result;
     local = session.mode == 1;
@@ -97,6 +101,28 @@ const char *EndScene::title() const {
 void EndScene::drawTop(graphics::Renderer &renderer, int skin) const {
     skin = std::clamp(skin, 0, 2);
     renderer.screenBegin(0, Background);
+    if(nullScene){
+        const auto purple=rgb(184,106,240);
+        renderer.rect(0,0,400,240,rgb(9,7,18));
+        if(nullScene==1){
+            const int shade=std::min(frame,90);
+            for(int sq=0;sq<64;++sq){int x=104+(sq%8)*24,y=8+(7-sq/8)*24;
+                const int base=(sq/8+sq%8)%2?110:65;
+                renderer.rect(x,y,24,24,rgb(base-shade/2,base/2-shade/4,base-shade/3));
+                if(terminalBoard[sq]&&(frame<30||((sq*37)%64)>std::min(64,(frame-30)*64/80)))
+                    renderer.piece(terminalBoard[sq],x+6,y+6,skin);
+            }
+            if(frame>=100){renderer.rect(160,87,25,6,purple);renderer.rect(213,87,25,6,purple);}
+        }else{
+            if(frame<140)renderer.portrait(49,(frame/8)%2?3:0,136,40,4);
+            if(frame>65)for(int i=0;i<64;++i)if((i*37)%64<std::min(64,(frame-65)*64/75))
+                renderer.rect(136+(i%8)*16,40+(i/8)*16,16,16,rgb(9,7,18));
+        }
+        if(frame>20&&frame<150)for(int i=0;i<6;++i)renderer.rect((i*61+frame*7)%380,20+(i*31+frame/3)%160,8+i*2,1,purple);
+        if(frame>=120)centered(renderer,205,nullScene==1?"HE ANALIZADO TUS MOVIMIENTOS":"NO HABIA PREVISTO ESTA JUGADA",purple,1);
+        if(frame>=145&&firstNullReward)centered(renderer,222,"LOGRO DESBLOQUEADO: ERROR 404",Gold,1);
+        return;
+    }
     if (special != space::Scene::None) {
         const bool failed = special == space::Scene::FailedRocket;
         const bool car = special == space::Scene::Roadster;

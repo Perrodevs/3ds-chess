@@ -369,3 +369,20 @@
 {"Error SD: progreso secreto sin guardar", "SD error: secret progress not saved"},
 {"Tablas: revancha con colores invertidos. Segunda tabla: avanza la mejor cabeza de serie. Limite: 240 medias jugadas.", "Draw: replay with colors reversed. Second draw: higher seed advances. Limit: 240 plies."},
 {"ACADEMIA < ", "ACADEMY < "},
+
+    {"NULL: datos danados, perfil conservado", "NULL: corrupt data, profile preserved"},
+    {"NULL: Byte, Elon, GLaDOS y Carrera Diamante", "NULL: Byte, Elon, GLaDOS and Diamond Career"},
+    {"NULL disponible / estudia tu estilo", "NULL available / studying your style"},
+    {"[X] Carrera: division Diamante", "[X] Career: Diamond division"},
+    {"[ ] Carrera: division Diamante (36 puntos)", "[ ] Career: Diamond division (36 points)"},
+    {"NULL: error SD, progreso pendiente", "NULL: SD error, progress pending"},
+    {"RIVAL DESCONOCIDO DESBLOQUEADO", "UNKNOWN OPPONENT UNLOCKED"},
+
+    {"Premio: vence a NULL", "Reward: defeat NULL"},
+    {"NULL: sin historial suficiente", "NULL: not enough history"},
+    {"NULL esta estudiando tu estilo", "NULL is studying your style"},
+    {"HE ANALIZADO TUS MOVIMIENTOS", "I HAVE ANALYZED YOUR MOVES"},
+    {"NO HABIA PREVISTO ESTA JUGADA", "I DID NOT EXPECT THAT MOVE"},
+    {"LOGRO DESBLOQUEADO: ERROR 404", "ACHIEVEMENT UNLOCKED: ERROR 404"},
+
+    {"NULL TERMINAL BOARD", "NULL TERMINAL BOARD"},

@@ -84,7 +84,7 @@ const Bot bots[botCount] = {
     {"Enderman", "Un salto entre casillas", "Normal", "Motor propio: sin Elo real", 2, 46, true, 0x50009AACu},
     {"GLaDOS", "Prueba de laboratorio", "Fuerte", "Motor propio: sin Elo real", 4, 47, true, 0x5000B99Bu},
     {"Linus Torvalds", "Una posicion mantenible", "Normal", "Motor propio: sin Elo real", 3, 48, true, 0x5000D88Au},
-    {"NULL", "Jefe secreto adaptativo", "Fuerte", "Motor propio: sin Elo real", 5, 49, true, 0x5000F779u},
+    {"NULL", "Jefe secreto adaptativo", "Fuerte", "Motor propio: sin Elo real", 5, 49, false, 0x5000F779u},
 };
 const Bot &botAt(int id) {
     return bots[id >= 0 && id < botCount ? id : 0];
@@ -294,7 +294,7 @@ const char *rivalInteraction(int speaker, int opponent, Dialogue event) {
 int legacyBotForLevel(int level) {
     return level <= 1 ? 0 : level <= 3 ? 1 : 2;
 }
-chess::Move openingMove(int id, const chess::Game &game) {
+chess::Move openingMove(int id, const chess::Game &game, uint32_t seed) {
     if (id < 0 || id >= botCount || game.result != chess::Result::Playing || game.moves.size() > 1)
         return {};
     auto expected = chess::Position::initial();
@@ -312,11 +312,11 @@ chess::Move openingMove(int id, const chess::Game &game) {
     const char *uci;
     if (game.moves.empty()) {
         static constexpr const char *white[] = {"e2e4", "d2d4", "g1f3", "c2c4", "e2e4"};
-        uci = white[id % 5];
+        uci = white[id==46?seed%5:unsigned(id%5)];
     } else {
         const auto first = game.moves.front().uci();
         if (first == "e2e4")
-            uci = (id == 2 || id == 4) ? "c7c5" : "e7e5";
+            uci = (id == 2 || id == 4 || (id==46&&seed%2)) ? "c7c5" : "e7e5";
         else if (first == "d2d4")
             uci = id >= 3 ? "g8f6" : "d7d5";
         else

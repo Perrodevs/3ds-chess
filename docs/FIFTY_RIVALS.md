@@ -17,7 +17,7 @@ Existing IDs0–40 are unchanged, including Elon40. New IDs:
 |46|Enderman|2|Balanced|
 |47|GLaDOS|4|Tactical|
 |48|Linus Torvalds|3|Defensive|
-|49|NULL|5|Balanced default; adaptation pending integration|
+|49|NULL|5|Balanced default; lightweight adaptation|
 
 These are fictional interpretations, not authentic player simulations or measured Elo.
 Nine events per new opponent are translated into Spanish and English. Nine optional
@@ -42,7 +42,9 @@ Auditory quality, render speed and visibility on actual3DS remain unverified.
 Archive writer3 stores50 opponent counters. Readers1 and2 retain their historical
 40 and41 rows; new counters start at zero. This is forward migration: older game
 builds cannot read writer3. Preserve RC2 save backups when testing this branch.
-Profile formats and character identifiers are unchanged at this stage.
+Profile writer5 reads versions1–4; product13 and achievement7 are new.
+Character identifiers and existing rewards retain their meanings. Older builds
+cannot read new profile/archive writers; preserve a backup for rollback.
 
 ## Verification so far
 
@@ -55,7 +57,11 @@ The first full regression run exposed the existing Elon footer assertion after
 speaker labeling changed. Restoring the short Elon label and using short names
 for other speakers fixes the footer width and preserves the prior text. Targeted
 Elon dialogue, localization, archive1/2 migration and space UI/secret checks passed
-subsequently. Full post-integration regressions and ARM/packages remain pending.
+subsequently. Full post-integration regression subsequently passed46 host programs; ARMv6K
+compilation passed. Final version/package verification remains in progress.
 
-NULL progression, live adaptive worker integration, cinematics and reward are not
-complete yet. The branch is development work, not a deliverable release.
+NULL progression, copied adaptive worker inputs, two cosmetic result scenes and
+its earned-only board/achievement are implemented and host tested. See
+NULL_ADAPTATION.md for exact historical-data limits and migration policy.
+Emulator observation is partial; physical validation remains pending. This branch
+has not been merged or published.

@@ -35,7 +35,8 @@ void learn(State &s,const economy::Session &session){
   }
   p=p.after(m);
  }
- if(castle)++s.castles;s.development+=std::min(4u,developed);
+ if(castle)++s.castles;
+ s.development+=std::min<uint32_t>(4,developed);
 }
 Event ingest(State &s,const economy::Session &session){
  Event e;if(session.id<=s.lastId||session.id>MaxId)return e;
@@ -111,7 +112,7 @@ ai::Style style(const State &s){
  return ai::Style::Positional;
 }
 chess::Move opening(const State &s,const chess::Game &g,uint32_t seed){
- if(!valid(s)||s.games<3||g.result!=chess::Result::Playing||g.moves.size()>1||g.initialFen!=chess::Position::initial().fen())return {};
+ if(!valid(s)||s.white<3||s.first[0]+s.first[1]+s.first[2]<3||g.result!=chess::Result::Playing||g.moves.size()>1||g.initialFen!=chess::Position::initial().fen())return {};
  auto p=chess::Position::initial();for(auto m:g.moves){auto legal=p.legal();if(std::find(legal.begin(),legal.end(),m)==legal.end())return {};p=p.after(m);}
  if(p.fen()!=g.position.fen())return {};
  const auto common=std::max_element(s.first.begin(),s.first.end())-s.first.begin();
@@ -126,16 +127,21 @@ chess::Move opening(const State &s,const chess::Game &g,uint32_t seed){
 std::string encode(const State &s){
  std::ostringstream o;o<<"NULL1 "<<s.initialized<<' '<<s.unlocked<<' '<<s.announced<<' '<<s.defeated<<' '<<int(s.requirements)<<' '<<s.lastId<<'\n';
  o<<s.games<<' '<<s.white<<' '<<s.black<<' '<<s.castles<<' '<<s.captures<<' '<<s.development;
- for(auto n:s.first)o<<' '<<n;o<<'\n';auto body=o.str();return body+std::to_string(checksum(body))+"\n";
+ for(auto n:s.first)o<<' '<<n;
+ o<<'\n';
+ auto body=o.str();return body+std::to_string(checksum(body))+"\n";
 }
 bool decode(const std::string &text,State &out){
- if(text.empty()||text.size()>MaxBytes||text.back()!='\n')return false;auto end=text.rfind('\n',text.size()-2);if(end==std::string::npos)return false;
+ if(text.empty()||text.size()>MaxBytes||text.back()!='\n')return false;
+ auto end=text.rfind('\n',text.size()-2);if(end==std::string::npos)return false;
  auto body=text.substr(0,end+1);std::istringstream tail(text.substr(end+1));uint32_t sum;std::string extra;if(!(tail>>sum)||(tail>>extra)||sum!=checksum(body))return false;
  State s;std::istringstream in(body);std::string magic;int init,unlocked,announced,defeated,flags;
  if(!(in>>magic>>init>>unlocked>>announced>>defeated>>flags>>s.lastId>>s.games>>s.white>>s.black>>s.castles>>s.captures>>s.development)||magic!="NULL1"||flags<0||flags>15)return false;
  for(int bit:{init,unlocked,announced,defeated})if(bit<0||bit>1)return false;
  s.initialized=init;s.unlocked=unlocked;s.announced=announced;s.defeated=defeated;s.requirements=uint8_t(flags);
- for(auto &n:s.first)if(!(in>>n))return false;if(in>>extra||!valid(s))return false;out=s;return true;
+ for(auto &n:s.first)if(!(in>>n))return false;
+ if(in>>extra||!valid(s))return false;
+ out=s;return true;
 }
 bool Store::load(State &s) {
     recovered = corrupt = false;

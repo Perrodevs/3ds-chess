@@ -3,27 +3,27 @@
 #include <algorithm>
 #include <cstdlib>
 namespace economy {
-const Product products[13] = {
+const Product products[productCount] = {
     {"Classic 8-bit", 0, 0, 0},    {"Neon Blue", 250, 0, 1},     {"Forest", 400, 0, 2},
     {"Royal", 700, 0, 3},          {"Retro Gold", 1000, 0, 4},   {"Piezas hielo", 180, 1, 1},
     {"Piezas rubi", 300, 1, 2},    {"Paleta pastel", 200, 2, 1}, {"Paleta intensa", 350, 2, 2},
     {"Marco doble", 150, 3, 1},    {"Marco dorado", 400, 3, 2},  {"Interfaz oceano", 200, 4, 1},
-    {"Interfaz bosque", 250, 4, 2}};
+    {"Interfaz bosque", 250, 4, 2}, {"NULL TERMINAL BOARD", 0, 0, 5}};
 bool Profile::buy(int i) {
-    if (i < 0 || i >= 13 || (unlocked & (1u << i)) || coins < uint64_t(products[i].price))
+    if (i < 0 || i >= productCount || i == NullBoard || (unlocked & (1u << i)) || coins < uint64_t(products[i].price))
         return false;
     coins -= products[i].price;
     unlocked |= 1u << i;
     return true;
 }
 bool Profile::equip(int i) {
-    if (i < 0 || i >= 13 || !(unlocked & (1u << i)))
+    if (i < 0 || i >= productCount || !(unlocked & (1u << i)))
         return false;
     equipped[products[i].category] = i;
     return true;
 }
 int Profile::unlockAchievement(int i, const Rewards &r) {
-    if (i < 0 || i >= 7 || (achievements & (1u << i)))
+    if (i < 0 || i >= 8 || (achievements & (1u << i)))
         return 0;
     achievements |= 1u << i;
     coins += r.achievement;
@@ -88,6 +88,7 @@ int settle(State &s) {
             p.unlockAchievement(1, s.rewards);
         if (s.session.level >= 3)
             p.unlockAchievement(3, s.rewards);
+        if(s.session.bot==49){p.unlocked|=1u<<NullBoard;p.unlockAchievement(Error404,s.rewards);}
         if (g.reason == "Jaque mate")
             p.unlockAchievement(6, s.rewards);
     } else {

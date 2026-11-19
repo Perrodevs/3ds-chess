@@ -6,7 +6,7 @@ HOST_CXX ?= clang++
 PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
 VERSION := $(shell sed -n 's/.*version = "\([^"]*\)";.*/\1/p' include/app_version.hpp)
 COMMON := source/chess/clock.cpp source/chess/chess.cpp source/ai/search.cpp source/ai/styles.cpp source/ai/bots.cpp source/economy/profile.cpp source/storage/store.cpp source/storage/profiles.cpp source/progression/progression.cpp source/openings/openings.cpp source/variants/variants.cpp source/composer/composer.cpp source/platform/battery.cpp source/localization/localization.cpp
-APP := $(COMMON) source/space/secret.cpp source/ai/worker.cpp source/ai/hints.cpp source/ui/end_scene.cpp source/ui/onboarding.cpp source/ui/review.cpp source/training/campaign.cpp source/training/academy.cpp source/graphics/renderer.cpp source/graphics/audio.cpp source/tournament/tournament.cpp source/archive/archive.cpp source/ui/preferences.cpp source/ui/developer.cpp source/ui/profiles.cpp source/ui/progression.cpp source/ui/openings.cpp source/ui/variants_ui.cpp source/ui/composer_ui.cpp source/ui/space_language.cpp source/ui/app.cpp source/main.cpp
+APP := $(COMMON) source/rivals/null_profile.cpp source/space/secret.cpp source/ai/worker.cpp source/ai/hints.cpp source/ui/end_scene.cpp source/ui/onboarding.cpp source/ui/review.cpp source/training/campaign.cpp source/training/academy.cpp source/graphics/renderer.cpp source/graphics/audio.cpp source/tournament/tournament.cpp source/archive/archive.cpp source/ui/preferences.cpp source/ui/developer.cpp source/ui/profiles.cpp source/ui/progression.cpp source/ui/openings.cpp source/ui/variants_ui.cpp source/ui/composer_ui.cpp source/ui/space_language.cpp source/ui/app.cpp source/main.cpp
 OBJS := $(patsubst source/%.cpp,build/3ds/%.o,$(APP))
 HEADERS := $(shell find include -name '*.hpp' -o -name '*.inc')
 ARCH := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -mword-relocations
@@ -376,3 +376,15 @@ test: test-null-profile
 sanitize-null-profile:
 	$(HOST_CXX) $(HOSTFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer $(COMMON) source/archive/archive.cpp source/rivals/null_profile.cpp tests/test_null_profile.cpp -o build/sanitize_null_profile
 	./build/sanitize_null_profile
+
+build/test_null_ui: $(APP:source/main.cpp=) tests/test_null_ui.cpp $(HEADERS)
+	$(HOST_CXX) $(HOSTFLAGS) $(APP:source/main.cpp=) tests/test_null_ui.cpp -o '$@'
+test-null-ui: build/test_null_ui
+	./build/test_null_ui
+test: test-null-ui
+sanitize-null-ui:
+	$(HOST_CXX) $(HOSTFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer $(APP:source/main.cpp=) tests/test_null_ui.cpp -o build/sanitize_null_ui
+	./build/sanitize_null_ui
+
+build/make_null_fixtures: $(APP:source/main.cpp=) tests/make_null_fixtures.cpp $(HEADERS)
+	$(HOST_CXX) $(HOSTFLAGS) $(APP:source/main.cpp=) tests/make_null_fixtures.cpp -o '$@'

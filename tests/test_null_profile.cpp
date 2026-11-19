@@ -50,6 +50,9 @@ int main(){
  assert(record(excluded,clock).changed&&excluded.games==1&&excluded.first[3]==1);
  State capped;assert(initialize(capped,0));capped.games=capped.white=MaxSamples;capped.first[0]=MaxSamples;
  assert(record(capped,match(1,2)).changed&&capped.games==MaxSamples&&(capped.requirements&1));
+ State blackOnly;assert(initialize(blackOnly,0));
+ for(int id=1;id<=3;++id)assert(record(blackOnly,match(id,2,true,-1)).changed);
+ assert(blackOnly.games==3&&blackOnly.white==0&&opening(blackOnly,initial,1)==chess::Move{});
  auto adaptive=style(s);assert(adaptive!=ai::Style::Balanced);
  auto preferred=opening(s,initial,1),varied=opening(s,initial,4);assert(preferred.uci()=="d2d4"&&varied.uci()=="g1f3");
  chess::Game e4;assert(e4.play(uci("e2e4")));assert(opening(s,e4,1).uci()=="c7c5"&&opening(s,e4,4).uci()=="e7e5");
@@ -66,6 +69,11 @@ int main(){
  archive::State history;assert(archive::initialize(history,0));for(int i=1;i<=3;++i){auto g=match(i,i==1?2:i==2?40:47);assert(archive::record(history,g.session,"Test")==archive::RecordResult::Added);}
  State rebuilt;assert(initialize(rebuilt,3,&history)&&rebuilt.games==3&&rebuilt.requirements==7);assert(!record(rebuilt,match(3,47)).changed);
  history.games.clear();State noProof;assert(initialize(noProof,3,&history)&&noProof.games==0&&noProof.requirements==0);
+ archive::State rosterArchive;assert(archive::initialize(rosterArchive,0));
+ for(int bot=41;bot<50;++bot){auto g=match(uint64_t(bot-40),bot);assert(archive::record(rosterArchive,g.session,"Test")==archive::RecordResult::Added);}
+ archive::State verifiedArchive;assert(archive::decode(archive::encode(rosterArchive),verifiedArchive));
+ for(int bot=0;bot<50;++bot)assert(verifiedArchive.statistics.byOpponent[bot].wins==uint64_t(bot>=41));
+ for(auto &entry:verifiedArchive.games){assert(entry.pgn().find(ai::botAt(entry.bot).name)!=std::string::npos);chess::Game replayed;assert(entry.replay(entry.moves.size(),replayed)&&replayed.position.fen()==entry.finalFen);}
  auto root=std::filesystem::temp_directory_path()/("chess-null-"+std::to_string(getpid()));std::filesystem::create_directories(root);
  Store store((root/"null.dat").string());State fresh;assert(!store.load(fresh)&&!store.corrupt);assert(initialize(fresh,0)&&store.save(fresh));
  assert(record(fresh,match(1,2)).changed);assert(store.save(fresh));auto previous=encode(fresh);

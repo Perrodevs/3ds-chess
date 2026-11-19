@@ -9,8 +9,8 @@ const char *trophyName(int i) {
     static const char *names[] = {"Primera victoria", "10 victorias", "50 partidas", "Vencer avanzado",
         "Primer enroque", "Primera promocion", "Primer jaque mate", "Division Plata", "Division Oro",
         "Division Diamante", "Division Maestro", "Supervivencia: 3", "Supervivencia: 5",
-        "Supervivencia: 10", "Campeon de torneo", "Academia completa", "Victoria Chess960", "Victoria Three-check", "Victoria King of the Hill"};
-    return names[std::clamp(i,0,18)];
+        "Supervivencia: 10", "Campeon de torneo", "Academia completa", "Victoria Chess960", "Victoria Three-check", "Victoria King of the Hill", "ERROR 404"};
+    return names[std::clamp(i,0,19)];
 }
 }
 bool App::reconcileProgressionRewards() {
@@ -97,6 +97,7 @@ void App::progressionAction() {
                             "Gana para seguir; tablas o derrota terminan intento");
 }
 bool App::trophyUnlocked(int i) const {
+    if(i==19)return (state.profile.achievements&(1u<<economy::Error404))!=0;
     if (i >= 16 && i < 19) return variantsUI && variantsUI->data().stats[size_t(i-16)].wins > 0;
     if (i < 7) return (state.profile.achievements & (1u << i)) != 0;
     if (i < 11) return (progressionState.promotions & (1u << (i-7+1))) != 0;
@@ -108,7 +109,7 @@ void App::drawProgressionTop(graphics::Renderer &r) {
     r.screenBegin(0,background);
     if (view == View::Trophies) {
         r.text(12,9,"SALA DE TROFEOS",accent,2,30);
-        for (int i=0;i<19;++i) {
+        for (int i=0;i<20;++i) {
             int x=9+(i%4)*97, y=33+(i/4)*39;
             bool unlocked=trophyUnlocked(i);
             r.rect(x,y,91,36,panelColor);

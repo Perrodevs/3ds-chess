@@ -203,7 +203,7 @@ bool Manager::migrate(storage::SaveFault fault) {
     // Snapshot the complete known 0.8.x/0.9.0 progress family, including backups.
     // Corrupt optional sidecars remain byte-for-byte recoverable and their owning
     // modules decide recovery; the main profile must decode before publication.
-    const char *names[] = {"profile.dat","training.dat","academy.dat","tournament.dat","archive.dat","ui.dat","progression.dat","openings.dat","composer.dat","variants.dat","language.dat","space.dat"};
+    const char *names[] = {"profile.dat","training.dat","academy.dat","tournament.dat","archive.dat","ui.dat","progression.dat","openings.dat","composer.dat","variants.dat","language.dat","space.dat","null.dat"};
     for (const char *name : names) {
         for (const char *suffix : {"", ".bak"}) {
             const auto source = root+"/"+name+suffix;
