@@ -1,4 +1,8 @@
-# 3DS Chess — Space & Language Update
+# 3DS Chess — Space & Language Update (informe RC1)
+
+La continuación RC2 se documenta en [ELON_COMPLETE.md](ELON_COMPLETE.md) y
+[ELON_TEST_RESULTS.json](ELON_TEST_RESULTS.json). Los resultados RC1 de este
+informe se conservan como evidencia histórica.
 
 ## Estado
 

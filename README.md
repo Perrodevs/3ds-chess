@@ -1,12 +1,13 @@
 # 3DS Chess
 
-**1.2.0 RC1 — Space & Language; pendiente de validación física.**
+**1.2.0 RC2 — Space & Language; pendiente de validación física.**
 
 Español/English con selector inicial e idioma por perfil. Elon Musk es el rival
 secreto 41: vence a Byte y Jensen en IA válida para desbloquearlo. Cuatro
 expresiones, nueve diálogos ficticios y escenas espaciales que puedes saltar.
 [Implementación y pendientes](docs/SPACE_LANGUAGE.md) ·
 [Pruebas](docs/SPACE_LANGUAGE_TEST_RESULTS.json) · [Idiomas](docs/LOCALIZATION.md).
+[Auditoría y escenas de Elon](docs/ELON_COMPLETE.md).
 Los ZIP ES y EN son alternativas de instalación y conservan los mismos guardados.
 Solo pruebas locales: los recursos anteriores todavía requieren revisión de derechos.
 
@@ -31,7 +32,7 @@ dos pantallas, motor propio y 41 rivales. Se conserva una copia recuperable de 0
 - Inicio deliberado, ayuda de4 páginas y menús táctiles inferiores.
 - Contra IA, dos personas en una consola y práctica sin reloj/premios con deshacer.
 - 41 rivales en 9 páginas: los 40 originales y Elon Musk secreto.
-  [Catálogo anterior](docs/BOTS.md) y [rival nuevo](docs/SPACE_SECRET.md).
+  [Catálogo](docs/BOTS.md) y [rival nuevo](docs/SPACE_SECRET.md).
 - 164 expresiones de 32×32 (160 en atlas y 4 por código), 369 diálogos ficticios
  breves ES/EN,42 bucles musicales originales (menú+41 rivales) y efectos. Música apagada y efectos encendidos por defecto.
 - Reglas legales, jaque/mate/ahogado, enroques, al paso,4 promociones,

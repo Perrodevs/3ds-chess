@@ -4,7 +4,7 @@ This log records actual project changes from the adoption of the local Git workf
 Earlier implementation reports remain in `docs/`; they are not retroactive Git
 releases. No historical commits or version tags are inferred from those reports.
 
-## Unreleased
+## 1.2.0 RC2 — Elon character audit (physical validation pending)
 
 ### Added
 

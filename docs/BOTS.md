@@ -1,7 +1,7 @@
-# Catálogo actual — 0.8.2 RC
+# Catálogo actual — 1.2.0 RC2
 
-Fuente de verdad: ai::bots.40IDs persistentes0–39, mostrados como rivales1–40
-en ocho páginas de cinco. No se cambió ningún ID durante la auditoría.
+Fuente de verdad: `ai::bots`, 41 IDs persistentes 0–40 en nueve páginas.
+Los IDs 0–39 anteriores se conservan; la última página tiene solo Elon.
 Cuatro expresiones por rival, nueve diálogos ficticios y un tema musical cada uno.
 
 | ID guardado | Nombre | Rango relativo | Nivel interno |
@@ -46,6 +46,7 @@ Cuatro expresiones por rival, nueve diálogos ficticios y un tema musical cada u
 | 37 | Steve | Bajo | 1 |
 | 38 | Alex | Normal | 2 |
 | 39 | Jensen Huang | Fuerte | 4 |
+| 40 | Elon Musk (secreto) | Fuerte | 4 |
 
 Los Elo de referencia de los bots/homenajes son metadata del catálogo anterior,
 no mediciones nuevas, Elo FIDE ni fuerza humana acreditada. Jensen se presenta
@@ -53,5 +54,7 @@ como fundador de NVIDIA. Todos los homenajes son no oficiales y las frases no
 son declaraciones reales. Retratos y procedencias: PORTRAITS.md / ASSET_RIGHTS.md.
 
 Los seis presupuestos se conservan. Hay preferencias iniciales de apertura y
-semillas, no cuarenta motores ni una reproducción auténtica de sus estilos.
-El plan de personalidad está en RIVAL_PROFILE_DESIGN.md y **no está activado**.
+semillas y seis preferencias configurables en `ai::styles`; Elon usa Agresivo.
+No son 41 motores ni una reproducción auténtica de estilos reales.
+Elon se desbloquea por perfil tras victorias válidas sobre Byte y Jensen;
+[desbloqueo y persistencia](SPACE_SECRET.md), [auditoría completa](ELON_COMPLETE.md).

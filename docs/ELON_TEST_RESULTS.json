@@ -1,0 +1,160 @@
+{
+  "version": "1.2.0 RC2",
+  "physical_tested": false,
+  "branch": "feature/space-language-update",
+  "baseline": {
+    "command": "make -j3 test",
+    "exit_code": 0,
+    "program_count": 42
+  },
+  "regression": {
+    "command": "make -j3 test all test-target",
+    "exit_code": 0,
+    "program_count": 43,
+    "programs": [
+      "test_academy",
+      "test_app",
+      "test_archive",
+      "test_audio_dialogue",
+      "test_audit_ui",
+      "test_battery",
+      "test_bots_ui",
+      "test_clock",
+      "test_clock_ui",
+      "test_composer",
+      "test_composer_ui",
+      "test_core",
+      "test_elon_dialogue",
+      "test_end_scene",
+      "test_hints",
+      "test_learning_ui",
+      "test_legacy_ui",
+      "test_localization",
+      "test_match",
+      "test_native_resources",
+      "test_navigation",
+      "test_openings",
+      "test_openings_ui",
+      "test_polish_ui",
+      "test_preferences",
+      "test_profiles",
+      "test_progression",
+      "test_progression_ui",
+      "test_review",
+      "test_space_scene",
+      "test_space_secret",
+      "test_space_ui",
+      "test_storage",
+      "test_storage_audit",
+      "test_strength",
+      "test_styles",
+      "test_tournament",
+      "test_training",
+      "test_translation",
+      "test_update_ui",
+      "test_variants",
+      "test_variants_ui",
+      "test_worker_stress"
+    ],
+    "perft_initial_depth4": 197281,
+    "note": "Full suite before final rocket nose correction. Affected scene/UI tests and ARM build rerun after it; version-only RC2 header then rebuilt."
+  },
+  "focused_final": {
+    "commands": [
+      "make -j3 test-space-scenes build/test_space_ui build/test_end_scene all test-target build/make_elon_fixtures",
+      "./build/test_space_ui",
+      "./build/test_end_scene",
+      "make -j2 build/test_space_secret sanitize-elon",
+      "./build/test_space_secret",
+      "make -j3 all test-target"
+    ],
+    "exit_codes": 0,
+    "three_real_profiles_tested": true
+  },
+  "sanitizers": {
+    "commands": [
+      "make -j2 sanitize-elon sanitize-space-language",
+      "make -j2 build/test_space_secret sanitize-elon"
+    ],
+    "address": true,
+    "undefined_behavior": true,
+    "exit_codes": 0,
+    "programs": [
+      "dialogue + tournament display",
+      "space scene timeline/render/geometry",
+      "localization + per-profile changes",
+      "secret UI settlement, skip, rematch/practice isolation"
+    ]
+  },
+  "catalog": {
+    "rivals": 41,
+    "new_id": 40,
+    "public_pool": 40,
+    "fictional_dialogue_events": 369,
+    "new_optional_interactions": 4,
+    "central_translation_keys": 1407,
+    "python_catalog_tests": 7,
+    "language_package_unit_tests": 4
+  },
+  "target": {
+    "architecture": "ARMv6K",
+    "project_objects": 36,
+    "new_textures": 0,
+    "stack_limit_changed": false,
+    "runtime_target_performance_measured": false
+  },
+  "azahar": {
+    "original_file_count": 6,
+    "sha256_match": true,
+    "emulator_stopped_before_restore": true,
+    "tested_binary_sha256": "26c04c31fec7e7a527913e9edb2e6d424a5da5298efad883299c0ac82f5fb1b0",
+    "observed": [
+      "RC2 title ES/EN",
+      "Roadster ES initial movement and final caption",
+      "Rocket EN ignition portrait flames and final space caption",
+      "FailedRocket ES initial flame and final frustrated portrait/victory",
+      "Quick rematch against Elon",
+      "B returns from Pause with 120ms keypress",
+      "e4 with AI reply e5"
+    ],
+    "limitations": [
+      "Not every animation frame captured",
+      "No full manual unlock playthrough",
+      "A/B scene skip covered automatically; short native keypress attempt visually inconclusive",
+      "Vulkan screenshots sometimes black/incomplete",
+      "No physical or auditory testing"
+    ]
+  },
+  "initial_failures_resolved": [
+    "New test used unsupported MoveList front/subscript API; corrected to its real iterator",
+    "Nine-event exact-text test exposed English variants differing from requested wording; corrected",
+    "Shared-renderer visual review exposed inverted rocket cone; corrected and geometry regression added"
+  ],
+  "pending": [
+    "Physical Old 3DS XL controls, readability, timing and real audio",
+    "Real suspension/SD power interruption testing",
+    "Long full manual game/unlock/AI-AI tournament playthrough",
+    "Manual A/B skip during every special scene; automatic A/B and result tests passed",
+    "All visual frames and all ES/EN screens; observed manual sample is partial",
+    "Rights clearance before redistribution"
+  ],
+  "not_added": [
+    "standalone spectator mode",
+    "Elon campaign or random tournament entrants",
+    "new AI engine or real Elo claims",
+    "CIA installer"
+  ],
+  "logs": {
+    "baseline.log": "842b36f978bd4aa855ec5a88b960f4bfe15315343b98a090748026e06c279532",
+    "regression.log": "5a2b5276c426d99385329966b265061f5dc01b21041f8511f36b8a8336d431f2",
+    "sanitizers.log": "55c1c73584c898d837b6c648475116bc42fb18f95ec652e523bd09991b39e84c",
+    "final-focused.log": "461b3ef6341ac6d0722a054c9ac07c98417e0740f249cf7edc60856823929207",
+    "final-scenes-target.log": "987b7f5bb9188dc7673f566ffdf2c26caa8dbb53419cdeac8213f6ebb174f8f8",
+    "rc2-target.log": "6c1144ca8b6415094d093c5801e2ee06153a6d832737cf36cdb02a1ccd2959d8",
+    "three-profiles.log": "a6dc0a23423f4fb643b66ed1c5b0a78483ea3613b1c17398224f6a43a94d2fb1",
+    "result-integration.log": "e5e7298990b2e162692d44a5fb11eb50fa2b7826575b49792adf13d6649bd534",
+    "ordinary-scenes.log": "a408519bd26f0cbda597b1406ba9aa3165765c9057bde00cd4741ee30d657112"
+  },
+  "packages": "Updated by tools/build_language_packages.py --local-testing; SHA-256 in dist/SHA256SUMS-LANGUAGES and dist/SPACE_LANGUAGE_RELEASE.json",
+  "verdict": "READY FOR PHYSICAL TESTS, local RC only"
+}
