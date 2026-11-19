@@ -1,4 +1,5 @@
 #include "space/secret.hpp"
+#include "storage/profiles.hpp"
 #include "storage/store.hpp"
 #include <cassert>
 #include <filesystem>
@@ -86,6 +87,15 @@ int main() {
     const auto validBackup=bytes(path.string()+".bak");put(path,"truncated");State recovered;assert(store.load(recovered)&&store.recovered&&encode(recovered)==validBackup);assert(store.save(recovered));
     put(path,"broken");put(path.string()+".bak","also broken");State preserved=s;assert(!store.load(preserved)&&store.corrupt&&encode(preserved)==encode(s));assert(!store.save(s)&&bytes(path)=="broken");Store withoutLoad(path.string());assert(!withoutLoad.save(s)&&withoutLoad.corrupt&&withoutLoad.exists&&bytes(path)=="broken");
     auto otherPath=dir/"slot2.dat";Store other(otherPath.string());State otherState;assert(initialize(otherState,0)&&other.save(otherState));assert(other.load(otherState)&&!otherState.unlocked&&otherState.elonWins==0);
+    // Use all three real profile-generation paths, not just arbitrary files.
+    profiles::Manager manager((dir/"profiles").string());assert(manager.init());
+    for(int slot=0;slot<profiles::capacity;++slot){assert(manager.create(slot,"Test"+std::to_string(slot)));State progress;assert(initialize(progress,0));
+        if(slot==0){assert(record(progress,byte).accepted);assert(record(progress,jensen).newlyUnlocked);assert(record(progress,match(3,ElonId,false)).scene==Scene::Roadster);}
+        if(slot==1)assert(record(progress,match(1,JensenId)).accepted);
+        assert(Store(manager.path(slot)+"/space.dat").save(progress));}
+    for(int slot=0;slot<profiles::capacity;++slot){State loaded;assert(Store(manager.path(slot)+"/space.dat").load(loaded));
+        assert(loaded.unlocked==(slot==0)&&loaded.elonWins==uint64_t(slot==0));
+        assert(loaded.byteWon==(slot==0)&&loaded.jensenWon==(slot!=2));}
     std::filesystem::remove_all(dir);
     std::cout<<"Space secret: canonical competitive wins, conservative history, profile isolation, stable ids, duplicate rejection, unlock announcement, persistent cinematic alternation, corrupt/truncated stores and six write faults passed\n";
 }

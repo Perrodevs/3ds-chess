@@ -24,6 +24,14 @@ int main(){
  for(int n=0;n<3;++n){economy::start(a.state,0,4,1,40);plies(a.state.session.game);a.state.session.game.resign(1);assert(a.save());space::State s;assert(space::Store(path+"/space.dat").load(s));assert(s.elonWins==uint64_t(n+1)&&s.lastScene==(n%2?space::Scene::Rocket:space::Scene::Roadster));
   auto paid=a.state.profile.coins;a.view=ui::View::Home;tap(a,68);assert(a.view==ui::View::Result);key(a,n%2?ui::A:ui::B);assert(a.state.profile.coins==paid);assert(a.save());space::State again;assert(space::Store(path+"/space.dat").load(again)&&again.elonWins==s.elonWins);
  }
+ // Library/statistics/review and rematch preserve the new stable opponent ID.
+ archive::State history;assert(archive::Store(path).load(history));assert(history.statistics.byOpponent[40].losses==3);
+ assert(history.games.back().bot==40&&history.games.back().pgn().find("Elon Musk")!=std::string::npos);
+ chess::Game replay;assert(history.games.back().replay(history.games.back().moves.size(),replay));assert(replay.result==a.state.session.game.result);
+ auto oldId=a.state.session.id,paid=a.state.profile.coins;assert(a.view==ui::View::Result);key(a,ui::A);
+ assert(a.view==ui::View::Game&&a.state.session.bot==40&&a.state.session.id>oldId&&a.state.profile.coins==paid);
+ economy::start(a.state,2,4,1,40);plies(a.state.session.game);a.state.session.game.resign(1);assert(a.save()&&a.state.profile.coins==paid);
+ space::State unchanged;assert(space::Store(path+"/space.dat").load(unchanged)&&unchanged.elonWins==3);
  ui::EndScene scene;economy::Session session;session.bot=40;session.mode=0;session.human=1;session.game.result=chess::Result::BlackWin;
  for(auto kind:{space::Scene::Roadster,space::Scene::Rocket,space::Scene::FailedRocket}){
   session.game.result=kind==space::Scene::FailedRocket?chess::Result::WhiteWin:chess::Result::BlackWin;

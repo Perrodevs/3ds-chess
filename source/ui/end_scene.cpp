@@ -25,8 +25,46 @@ void largeQueen(graphics::Renderer &renderer, int side, int x, int y, int scale,
                    scale);
 }
 } // namespace
+SpaceVisual spaceVisual(space::Scene scene, int frame) {
+    const int duration = scene == space::Scene::Rocket ? 240 : scene == space::Scene::FailedRocket ? 120 : 180;
+    frame = std::clamp(frame, 0, duration);
+    SpaceVisual v;
+    if (scene == space::Scene::Roadster) {
+        v.x = -100 + frame * 4;
+        v.y = 140 - std::max(0, frame - 40) / 2;
+        v.spaceMix = 255;
+        v.captionCharacters = std::max(0, frame - 122) * 2;
+    } else if (scene == space::Scene::Rocket || scene == space::Scene::FailedRocket) {
+        const bool failed = scene == space::Scene::FailedRocket;
+        int rise;
+        if (failed) {
+            // Continuous lift, stall, then gentle return to the same platform.
+            rise = frame < 55 ? std::clamp(frame - 35, 0, 20) * 12 / 20 :
+                   frame < 70 ? 12 : std::max(0, 95 - frame) * 12 / 25;
+            v.spaceMix = 0;
+            v.frustrated = frame >= 60;
+            v.error = frame >= 60 && frame < 88 && (frame / 4) % 2 == 1;
+            v.captionCharacters = std::max(0, frame - 91) * 2;
+        } else {
+            const int launch = std::max(0, frame - 80);
+            rise = launch * launch / 55;
+            v.spaceMix = std::clamp(frame - 95, 0, 65) * 255 / 65;
+            v.captionCharacters = std::max(0, frame - 195) * 2;
+        }
+        v.x = 180; v.y = 84 - rise;
+        v.engines = frame >= 20 && (!failed || frame < 60);
+        v.smoke = frame >= 20 && (failed ? frame < 90 : frame < 150);
+    }
+    return v;
+}
 void EndScene::begin(const economy::Session &session, space::Scene scene) {
-    special = session.bot==40 && session.mode==0 ? scene : space::Scene::None;
+    const bool humanWon = (session.game.result == chess::Result::WhiteWin && session.human == 1) ||
+                          (session.game.result == chess::Result::BlackWin && session.human == -1);
+    const bool decisive = session.game.result == chess::Result::WhiteWin || session.game.result == chess::Result::BlackWin;
+    const bool matchesResult = humanWon ? scene == space::Scene::FailedRocket :
+        scene == space::Scene::Roadster || scene == space::Scene::Rocket;
+    special = session.bot == 40 && session.mode == 0 && (session.human == 1 || session.human == -1) &&
+              decisive && matchesResult ? scene : space::Scene::None;
     limit = special==space::Scene::Rocket?240:special==space::Scene::FailedRocket?120:Duration;
     result = session.game.result;
     local = session.mode == 1;
@@ -59,28 +97,59 @@ const char *EndScene::title() const {
 void EndScene::drawTop(graphics::Renderer &renderer, int skin) const {
     skin = std::clamp(skin, 0, 2);
     renderer.screenBegin(0, Background);
-    if(special!=space::Scene::None){
-        const bool failed=special==space::Scene::FailedRocket;
-        const bool car=special==space::Scene::Roadster;
-        const bool sky=car||frame>125;
-        if(!sky)renderer.rect(0,180,400,60,rgb(40,48,65));
-        for(int i=0;i<48;++i){int x=(i*73+400-frame*(1+i%3))%400;int y=(i*37)%175;if(sky||i<12)renderer.rect(x,y,1+i%2,1+i%2,Ink);}
-        if(car){int x=-100+frame*4;int y=140-std::max(0,frame-40)/2;
-            renderer.rect(x,y,82,17,rgb(190,37,52));renderer.rect(x+8,y-8,54,11,rgb(230,55,65));
-            renderer.rect(x+24,y-22,33,16,Blue);renderer.rect(x+21,y-22,4,16,rgb(190,37,52));
-            renderer.rect(x+8,y+12,15,12,Background);renderer.rect(x+61,y+12,15,12,Background);
-            renderer.rect(x+12,y+16,7,5,Muted);renderer.rect(x+65,y+16,7,5,Muted);
-            renderer.rect(x+73,y+2,8,4,Gold);
-        }else{
-            int rise=failed?(frame<60?std::max(0,frame-35)/2:std::max(0,90-frame)/2):std::max(0,frame-80)*std::max(0,frame-80)/55;
-            int y=84-rise;renderer.rect(110,199,180,9,Muted);renderer.rect(180,y,40,104,Ink);
-            for(int n=0;n<16;++n)renderer.rect(180+n,y-16+n,40-2*n,1,Ink);
-            renderer.rect(172,y+77,8,26,rgb(190,37,52));renderer.rect(220,y+77,8,26,rgb(190,37,52));
-            renderer.portrait(40,failed&&frame>60?3:2,184,y+20,1);
-            if(frame>20&&(!failed||frame<65)){renderer.rect(188,y+104,24,12+(frame%9),Gold);renderer.rect(194,y+104,12,20+(frame%11),rgb(235,93,45));}
-            for(int i=0;i<12;++i)if(frame>20)renderer.rect(155+(i*29+frame)%90,192+i%3*5,7+i%4,4,Muted);
+    if (special != space::Scene::None) {
+        const bool failed = special == space::Scene::FailedRocket;
+        const bool car = special == space::Scene::Roadster;
+        const auto visual = spaceVisual(special, frame);
+        const auto blend = [&](int a, int b) { return a + (b - a) * visual.spaceMix / 255; };
+        renderer.rect(0, 0, 400, 240, rgb(blend(35, 8), blend(56, 13), blend(82, 29)));
+        if (visual.spaceMix < 255)
+            renderer.rect(0, 180, 400, 60, rgb(blend(40, 8), blend(48, 13), blend(65, 29)));
+        for (int i = 0; i < 48; ++i) {
+            // Positive wrapping: stars never jump through a negative remainder.
+            int x = ((i * 73 - frame * (1 + i % 3)) % 400 + 400) % 400;
+            int y = (i * 37) % 175;
+            if (car || i < 4 + visual.spaceMix * 44 / 255)
+                renderer.rect(x, y, 1 + i % 2, 1 + i % 2, Ink);
         }
-        centered(renderer,12,failed?"EL AJEDREZ NO ERA TAN SIMPLE.":car?"DERROTA EN ÓRBITA":"SOLO 64 CASILLAS. QUÉ SIMPLE.",Gold,1);
+        const int x = visual.x, y = visual.y;
+        if (car) {
+            // Original layered silhouette: low red body, open cabin, lamps and wheels.
+            renderer.rect(x+4,y+6,78,11,rgb(158,30,43));
+            renderer.rect(x+9,y,64,13,rgb(220,46,57));
+            renderer.rect(x+16,y-6,42,9,rgb(244,73,75));
+            renderer.rect(x+24,y-18,31,13,Blue);renderer.rect(x+21,y-18,4,15,rgb(170,35,46));
+            renderer.rect(x+29,y-16,20,8,rgb(172,214,226));
+            renderer.rect(x+38,y-5,16,5,Background);
+            renderer.rect(x+9,y+12,15,12,Background);renderer.rect(x+61,y+12,15,12,Background);
+            renderer.rect(x+13,y+16,7,5,Muted);renderer.rect(x+65,y+16,7,5,Muted);
+            renderer.rect(x+74,y+3,8,4,Gold);renderer.rect(x+4,y+5,4,4,rgb(255,109,86));
+        } else {
+            if (visual.spaceMix < 255) renderer.rect(110,199,180,9,Muted);
+            renderer.rect(x,y,40,104,Ink);
+            // Widen from the tip down to the fuselage, never an inverted cone.
+            for (int n=0;n<20;++n) renderer.rect(x+19-n,y-20+n,2+2*n,1,Ink);
+            renderer.rect(x-8,y+77,8,26,rgb(190,37,52));renderer.rect(x+40,y+77,8,26,rgb(190,37,52));
+            renderer.portrait(40,visual.frustrated?3:2,x+4,y+20,1);
+            renderer.border(x+3,y+19,34,34,Blue);
+            if (visual.engines) {
+                renderer.rect(x+8,y+104,24,12+(frame%9),Gold);
+                renderer.rect(x+14,y+104,12,20+(frame%11),rgb(235,93,45));
+            }
+            for (int i=0;i<12;++i) if (visual.smoke)
+                renderer.rect(155+(i*29+frame)%90,192+i%3*5,7+i%4,4,Muted);
+            if (visual.error) {
+                renderer.rect(242,y+30,25,21,Background);
+                renderer.text(249,y+32,"!",rgb(246,91,85),2,1);
+                renderer.rect(x-12,y+12,3,3,Gold);renderer.rect(x+49,y+6,3,3,Gold);
+            }
+        }
+        const auto caption = localization::translate(failed ? "EL AJEDREZ NO ERA TAN SIMPLE." :
+            car ? "DERROTA EN ÓRBITA" : "SOLO 64 CASILLAS. QUÉ SIMPLE.");
+        // Reveal whole UTF-8 glyphs, keeping the final caption centered and fixed.
+        size_t bytes=0; int count=0;
+        while(bytes<caption.size() && count++<visual.captionCharacters) localization::nextCodepoint(caption,bytes);
+        renderer.rawText((400-int(localization::glyphCount(caption))*6)/2,12,caption.substr(0,bytes),Gold,1);
         centered(renderer,224,"A o B para saltar la animacion.",Muted,1);
         return;
     }

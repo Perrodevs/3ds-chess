@@ -4,6 +4,13 @@
 #include "graphics/renderer.hpp"
 
 namespace ui {
+// Small deterministic timeline, shared by rendering and regression checks.
+// Coordinates are pixel units; no resources or persistent state are owned here.
+struct SpaceVisual {
+    int x = 0, y = 0, spaceMix = 0, captionCharacters = 0;
+    bool engines = false, smoke = false, error = false, frustrated = false;
+};
+SpaceVisual spaceVisual(space::Scene, int frame);
 // A cosmetic terminal scene. It never changes the game, clocks or rewards.
 class EndScene {
     static constexpr int Duration = 180;

@@ -12,6 +12,16 @@ releases. No historical commits or version tags are inferred from those reports.
   tournament pairings, without new entrants, popups or result/reward changes.
 - Match the requested bilingual puzzle greeting and technological guest category.
 
+### Changed and fixed
+
+- Correct the inverted rocket nose discovered in shared-renderer visual review.
+- Stage space scenes with progressive sky transition and final caption reveal;
+  add smooth failed-launch descent, error sparks and frustrated expression.
+- Reject special-scene requests inconsistent with the result or without a human
+  player, preserving ordinary scenes for other modes and opponents.
+- Add isolated synthetic emulator fixtures and regressions for timeline, library,
+  PGN, statistics, rematch and practice reward isolation.
+
 ## 1.2.0 RC1 — Space & Language (physical validation pending)
 
 ### Build and compatibility

@@ -350,3 +350,12 @@ test-elon-dialogue: build/test_elon_dialogue
 	$(PYTHON) tests/test_content_catalog.py
 	$(PYTHON) tests/test_localization_catalog.py
 test: test-elon-dialogue
+
+build/make_elon_fixtures: $(COMMON) source/space/secret.cpp source/archive/archive.cpp source/ui/end_scene.cpp source/graphics/renderer.cpp tests/make_elon_fixtures.cpp $(HEADERS)
+	$(HOST_CXX) $(HOSTFLAGS) $(COMMON) source/space/secret.cpp source/archive/archive.cpp source/ui/end_scene.cpp source/graphics/renderer.cpp tests/make_elon_fixtures.cpp -o '$@'
+
+sanitize-elon:
+	$(HOST_CXX) $(HOSTFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer $(APP:source/main.cpp=) tests/test_elon_dialogue.cpp -o build/elon-audit/sanitize_dialogue
+	./build/elon-audit/sanitize_dialogue
+	$(HOST_CXX) $(HOSTFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer $(COMMON) source/ui/end_scene.cpp source/graphics/renderer.cpp tests/test_space_scene.cpp -o build/elon-audit/sanitize_scenes
+	./build/elon-audit/sanitize_scenes
