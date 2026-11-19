@@ -341,3 +341,12 @@ build/test_space_scene: $(COMMON) source/ui/end_scene.cpp source/graphics/render
 test-space-scenes: build/test_space_scene
 	./build/test_space_scene
 test: test-space-scenes
+
+# Optional AI-pair dialogue is exercised in the existing tournament bracket.
+build/test_elon_dialogue: $(APP:source/main.cpp=) tests/test_elon_dialogue.cpp $(HEADERS)
+	$(HOST_CXX) $(HOSTFLAGS) $(APP:source/main.cpp=) tests/test_elon_dialogue.cpp -o '$@'
+test-elon-dialogue: build/test_elon_dialogue
+	./build/test_elon_dialogue
+	$(PYTHON) tests/test_content_catalog.py
+	$(PYTHON) tests/test_localization_catalog.py
+test: test-elon-dialogue

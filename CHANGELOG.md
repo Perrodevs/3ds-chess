@@ -4,6 +4,14 @@ This log records actual project changes from the adoption of the local Git workf
 Earlier implementation reports remain in `docs/`; they are not retroactive Git
 releases. No historical commits or version tags are inferred from those reports.
 
+## Unreleased
+
+### Added
+
+- Add optional fictional Elon/Byte and Elon/Jensen dialogue to actual AI-AI
+  tournament pairings, without new entrants, popups or result/reward changes.
+- Match the requested bilingual puzzle greeting and technological guest category.
+
 ## 1.2.0 RC1 — Space & Language (physical validation pending)
 
 ### Build and compatibility

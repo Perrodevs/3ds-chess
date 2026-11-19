@@ -26,6 +26,9 @@ const char *botLine(int id, int expression);
 enum class Dialogue { Greeting, Thinking, Capture, Check, Win, Loss, PuzzleStart, PuzzleSolved, Mistake };
 // Original character dialogue, expressed from the rival/mentor's perspective.
 const char *botDialogue(int id, Dialogue event);
+// Optional fictional line for an actual AI-AI pairing; nullptr preserves normal
+// dialogue. This lookup never schedules searches or changes either participant.
+const char *rivalInteraction(int speaker, int opponent, Dialogue event);
 int legacyBotForLevel(int level);
 // Tiny original character preferences, not a reproduction of any player repertoire.
 // Only the first move for each side of an unmodified standard-start game is eligible.

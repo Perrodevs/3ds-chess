@@ -75,7 +75,7 @@ const Bot bots[botCount] = {
     {"Steve", "Personaje invitado", "Bajo", "Sin ELO oficial", 1, 37, true, 0xbe66ec04u},
     {"Alex", "Personaje invitado", "Normal", "Sin ELO oficial", 2, 38, true, 0x65d14565u},
     {"Jensen Huang", "Fundador de NVIDIA", "Fuerte", "Sin ELO oficial", 4, 39, true, 0x4e564441u},
-    {"Elon Musk", "Invitado especial ficticio", "Fuerte", "Motor propio: sin Elo real", 4, 40, true, 0x53504143u},
+    {"Elon Musk", "Invitado tecnológico ficticio", "Fuerte", "Motor propio: sin Elo real", 4, 40, true, 0x53504143u},
 };
 const Bot &botAt(int id) {
     return bots[id >= 0 && id < botCount ? id : 0];
@@ -246,11 +246,23 @@ const char *botDialogue(int id, Dialogue event) {
          "Acelera esa combinacion.", "Buen rendimiento por jugada!", "Revisa los drivers del plan."},
         {"¿Solo 64 casillas?", "Necesito más cómputo.", "Movimiento optimizado.",
          "Tu rey necesita un parche.", "Ajedrez demasiado simple.", "Error de simulación.",
-         "¿Dónde está el árbol tecnológico?", "Grok ya lo sabía.", "Necesito más datos."},
+         "¿Y el árbol tecnológico?", "Grok ya lo sabía.", "Necesito más datos."},
     };
     const int bot = id >= 0 && id < botCount ? id : 0;
     const int e = static_cast<int>(event);
     return lines[bot][e >= 0 && e < 9 ? e : 0];
+}
+const char *rivalInteraction(int speaker, int opponent, Dialogue event) {
+    if (speaker != 40) return nullptr;
+    if (opponent == 39) {
+        if (event == Dialogue::Greeting) return "Necesito más VRAM.";
+        if (event == Dialogue::Thinking) return "Ese cálculo usa demasiados CUDA.";
+    }
+    if (opponent == 2) {
+        if (event == Dialogue::Greeting) return "¿Quién programó a este robot?";
+        if (event == Dialogue::Thinking) return "Necesito actualizar mi IA.";
+    }
+    return nullptr;
 }
 int legacyBotForLevel(int level) {
     return level <= 1 ? 0 : level <= 3 ? 1 : 2;

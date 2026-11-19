@@ -2013,8 +2013,21 @@ void App::bottom(Renderer &r) {
                muted, 1, 49);
         menu({"Si, confirmar", "Cancelar"});
     }
+    // Only actual AI-AI tournament pairings get a contextual line. The bracket
+    // remains visible; there is no popup and no player win/defeat cinematic.
+    const char *interaction = nullptr;
+    if (view == View::Tournament && tournamentState.size &&
+        !tournamentState.finished() && !tournamentState.playerMatch()) {
+        const int white = tournamentState.entrants[size_t(tournamentState.whiteEntrant())];
+        const int black = tournamentState.entrants[size_t(tournamentState.blackEntrant())];
+        const auto event = tournamentState.game.moves.empty() ? ai::Dialogue::Greeting : ai::Dialogue::Thinking;
+        interaction = ai::rivalInteraction(white, black, event);
+        if (!interaction) interaction = ai::rivalInteraction(black, white, event);
+    }
     if (noticeFrames > 0)
         r.text(12, 226, notice, flash ? gold : muted, 1, 49);
+    else if (interaction)
+        r.rawText(12, 226, "Elon: " + localization::translate(interaction), blue, 1, 49);
     else
         r.text(12, 226,
                view == View::Home ? "SELECT: CARRERA / SUPERVIVENCIA / TROFEOS"
