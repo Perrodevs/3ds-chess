@@ -6,6 +6,8 @@ releases. No historical commits or version tags are inferred from those reports.
 
 ## Unreleased
 
+- Use libctru-backed directory creation for isolated startup probes. The linked ARM newlib returned ENOSYS from mkdtemp and left the game blocked at the SD check.
+
 - Verify the real Byte/Jensen mate unlock and reject a Developer-forced win; exercise profile creation recovery from a blocked SD path.
 
 - Reuse selected-piece destination masks across unchanged board frames and replace repeated scans with one bit test per square.

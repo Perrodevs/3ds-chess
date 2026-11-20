@@ -37,6 +37,15 @@ int main(int argc, char **argv) {
     for (const auto &entry : fs::directory_iterator(directory)) assert(entry.path().filename() == "logs");
     console.update(false, false, true, false);
     assert(console.canStartGame());
+    const auto preexisting = directory / ("diag-probe-" + std::to_string(journal().id()) + "-0");
+    fs::create_directory(preexisting);
+    std::ofstream(preexisting / "keep") << "preserved";
+    Console collision(root);
+    collision.start(true, false, true, false);
+    complete(collision);
+    assert(collision[6].status == Status::Pass && collision[7].status == Status::Pass);
+    assert(fs::file_size(preexisting / "keep") == 9);
+    assert(!fs::exists(directory / ("diag-probe-" + std::to_string(journal().id()) + "-1")));
     auto bootMs = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count();
     console.start(false, true, true, false);
     for (int i = 0; i < 10; ++i) console.update(false, false, false, false);

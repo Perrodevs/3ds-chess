@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include "diagnostics/console.hpp"
 #include "diagnostics/log.hpp"
 #include "ai/bots.hpp"
@@ -32,9 +31,20 @@ bool exists(const std::string &path) {
     struct stat info{};
     return lstat(path.c_str(), &info) == 0;
 }
+bool probeDirectory(const std::string &root, const char *prefix, std::string &path) {
+    // Linked devkitARM newlib can return ENOSYS from mkdtemp. mkdir dispatches
+    // to libctru's SD archive handler. A collision never opens existing data.
+    const auto base = root + "/" + prefix + std::to_string(journal().id()) + "-";
+    for (int attempt = 0; attempt < 16; ++attempt) {
+        path = base + std::to_string(attempt);
+        if (::mkdir(path.c_str(), 0700) == 0) return true;
+        if (errno != EEXIST) return false;
+    }
+    return false;
+}
 Probe probeStorage(const std::string &root) {
-    auto path = root + "/diag-probe-XXXXXX";
-    if (!mkdtemp(path.data())) return {"create_probe_directory", errno};
+    std::string path;
+    if (!probeDirectory(root, "diag-probe-", path)) return {"create_probe_directory", errno};
     const auto file = path + "/sd-check.tmp";
     Probe result;
     auto failure = [&](const char *stage, int error) {
@@ -64,8 +74,8 @@ Probe probeStorage(const std::string &root) {
     return result;
 }
 Probe probeProfile(const std::string &root) {
-    auto path = root + "/diag-profile-XXXXXX";
-    if (!mkdtemp(path.data())) return {"create_fixture_directory", errno};
+    std::string path;
+    if (!probeDirectory(root, "diag-profile-", path)) return {"create_fixture_directory", errno};
     profiles::Manager fixture(path);
     Probe result;
     if (!fixture.init()) result = {"init_fixture_registry", errno};
