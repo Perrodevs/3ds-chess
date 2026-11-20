@@ -8,7 +8,7 @@
 #include <unistd.h>
 static void key(ui::App &a,unsigned k){a.update({k,false,0,0},0);}
 static void tap(ui::App &a,int y,int x=50){a.update({0,true,x,y},0);}
-static void create(ui::App &a){a.init();if(a.view==ui::View::Language) a.update({ui::A,false,0,0},0);assert(a.view==ui::View::Profiles);tap(a,48);tap(a,48);assert(a.view==ui::View::Title);key(a,ui::A);}
+static void create(ui::App &a){a.init();if(a.view==ui::View::Language) a.update({ui::A,false,0,0},0);assert(a.view==ui::View::Profiles);tap(a,48);tap(a,72);assert(a.view==ui::View::Title);key(a,ui::A);}
 static void modes(ui::App &a){assert(a.view==ui::View::Home);key(a,ui::Select);assert(a.view==ui::View::Modes);}
 static chess::Game mate(const chess::Game &initial) {
     auto game=initial;

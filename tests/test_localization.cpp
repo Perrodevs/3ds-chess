@@ -24,13 +24,13 @@ int main(){
  {
  ui::App a(path,true);a.init();assert(a.view==ui::View::Language);key(a,ui::B);assert(a.view==ui::View::Language);
  key(a,ui::Down);key(a,ui::A);assert(a.view==ui::View::Profiles&&a.uiLanguage()==L::English);
- tap(a,48);tap(a,48);assert(a.view==ui::View::Title);key(a,ui::A);
+ tap(a,48);tap(a,72);assert(a.view==ui::View::Title);key(a,ui::A);
  a.setName("Victoria");a.state.settings.spanish=false;assert(a.save());const auto before=storage::encode(a.state);graphics::Renderer r;assert(r.init());a.draw(r);
  assert(visible(r,"Victoria")&&!visible(r,"Nueva partida")&&visible(r,"New game"));
  tap(a,128);assert(a.view==ui::View::Options);tap(a,193);assert(a.view==ui::View::Language);tap(a,104);assert(a.uiLanguage()==L::Spanish);
  assert(!a.state.settings.spanish); // Notation remains independently chosen.
  auto after=storage::encode(a.state);assert(before==after);
- key(a,ui::B);tap(a,168);tap(a,72);tap(a,48);key(a,ui::A);assert(a.uiLanguage()==L::English); // New profile inherits global default.
+ key(a,ui::B);tap(a,168);tap(a,72);tap(a,72);key(a,ui::A);assert(a.uiLanguage()==L::English); // New profile inherits global default.
  key(a,ui::B);assert(a.view==ui::View::Title);key(a,ui::B);tap(a,48);tap(a,48);assert(a.uiLanguage()==L::Spanish);
  r.shutdown();
  }

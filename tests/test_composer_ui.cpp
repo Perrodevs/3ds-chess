@@ -88,7 +88,7 @@ int main(){
   ui::App app(profilesPath,true);app.init();if(app.view==ui::View::Language) app.update({ui::A,false,0,0},0);
   auto press=[&](unsigned k){app.update({k,false,0,0},0);};
   auto touch=[&](int y){app.update({0,true,50,y},0);};
-  touch(48);touch(48);press(ui::A);assert(app.view==ui::View::Home);
+  touch(48);touch(72);press(ui::A);assert(app.view==ui::View::Home);
   app.state.profile.coins=777;assert(app.save());const auto normalFen=app.state.session.game.position.fen();
   press(ui::Select);assert(app.view==ui::View::Modes);touch(144);assert(app.view==ui::View::ComposerWorkshop);
   press(ui::A);press(ui::Start);press(ui::A);assert(app.workshopTextRequested());
@@ -96,7 +96,7 @@ int main(){
   app.suspend();app.resume();press(ui::B);press(ui::B);assert(app.view==ui::View::Modes);press(ui::B);
   assert(app.view==ui::View::Home&&app.state.profile.coins==777&&app.state.session.game.position.fen()==normalFen);
   profiles::Manager manager(profilesPath);assert(manager.init());composer::Store one(manager.path(0)+"/composer.dat");assert(one.load()&&one.data.positions.size()==1&&one.data.positions[0].name=="Perfil Uno");
-  touch(168);touch(72);touch(48);press(ui::A);assert(app.view==ui::View::Home&&app.state.profile.coins==0);
+  touch(168);touch(72);touch(72);press(ui::A);assert(app.view==ui::View::Home&&app.state.profile.coins==0);
   press(ui::Select);touch(144);assert(app.view==ui::View::ComposerWorkshop);
   press(ui::A);press(ui::Start);press(ui::A);assert(app.workshopTextRequested());app.acceptWorkshopText("Perfil Dos",true);
   press(ui::B);press(ui::B);press(ui::B);assert(app.view==ui::View::Home);
