@@ -6,9 +6,54 @@
 static void key(ui::App&a,unsigned k){a.update({k,false,0,0},0);}
 static void tap(ui::App&a,int y){a.update({0,true,50,y},0);}
 static void plies(chess::Game &g){for(auto u:{"g1f3","b8c6","f3g1","c6b8","e2e4","e7e5","f1c4","f8c5"}){chess::Move m;for(auto x:g.position.legal())if(x.uci()==u)m=x;assert(g.play(m));}}
+static void ratedMate(ui::App &app, int rival) {
+    economy::start(app.state, 0, 4, 1, rival);
+    auto &game = app.state.session.game;
+    for (const std::string uci : {"e2e4","e7e5","d1h5","b8c6","f1c4","g8f6","a2a3","a7a6","h5f7"}) {
+        assert(game.play({chess::square(uci.substr(0,2)), chess::square(uci.substr(2,2)), 0}));
+    }
+    assert(game.result == chess::Result::WhiteWin && game.moves.size() == 9);
+    assert(app.save());
+}
+static void unlockByMate(const std::string &root) {
+    assert(std::filesystem::create_directory(root));
+    {
+        ui::App app(root);
+        app.init();
+        ratedMate(app, 2); // Byte is one of two required rivals.
+        assert(!app.secretUnlocked());
+        app.view = ui::View::Home;
+        tap(app, 130); tap(app, 172);
+        assert(app.view == ui::View::DeveloperPassword);
+        for (int digit = 0; digit < 4; ++digit) {
+            for (int press = 0; press <= digit; ++press) key(app, ui::Up);
+            if (digit < 3) key(app, ui::Right);
+        }
+        key(app, ui::A); key(app, ui::B);
+        assert(app.view == ui::View::Home);
+        economy::start(app.state, 0, 4, 1, 39);
+        plies(app.state.session.game);
+        assert(app.save());
+        app.view = ui::View::Game;
+        key(app, ui::Select); tap(app,48);
+        assert(app.view == ui::View::Result && app.state.session.game.result == chess::Result::WhiteWin);
+        assert(app.save() && !app.secretUnlocked());
+    }
+    {
+        ui::App app(root);
+        app.init();
+        assert(!app.secretUnlocked() && app.state.session.game.result == chess::Result::Playing);
+        ratedMate(app, 39); // Jensen completes the unlock.
+        assert(app.secretUnlocked());
+    }
+    ui::App reopened(root);
+    reopened.init();
+    assert(reopened.secretUnlocked());
+}
 int main(){
  assert(ai::botCount==50&&std::string(ai::botAt(40).name)=="Elon Musk"&&ai::botAt(40).engineLevel==4);
  char tmp[]="/tmp/chess-space-ui-XXXXXX";assert(mkdtemp(tmp));std::string path=tmp;
+ unlockByMate(path+"/unlock");
  ui::App a(path);a.init();a.view=ui::View::Home;
  tap(a,48);tap(a,96);for(int i=0;i<40;++i)key(a,ui::Right);key(a,ui::A);assert(a.view==ui::View::Bots&&a.state.settings.bot==0);
  // Last page contains one real slot. Empty slots never confirm a different rival.

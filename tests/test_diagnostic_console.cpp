@@ -79,6 +79,24 @@ int main(int argc, char **argv) {
         assert(app.wantsName);
         app.setName("Console Test");
         assert(app.view == ui::View::Title); // Failed migration must not disable a new slot.
+        press(ui::A);
+        app.update({0, true, 50, 168}, 0);
+        app.update({0, true, 50, 72}, 0);
+        const auto blockedSlot = directory / "profiles/slot_02";
+        std::ofstream(blockedSlot) << "blocking file";
+        press(ui::A); assert(app.wantsName);
+        app.setName("Retry");
+        assert(app.view == ui::View::ProfileSlot);
+        assert(std::string(journal().error(0).code) == "PROFILE_SLOT_MKDIR_FAILED");
+        assert(renderer.init());
+        app.draw(renderer);
+        auto visible = renderer.visibleTexts();
+        assert(std::find(visible.begin(),visible.end(),"PROFILE_RESERVE_FAILED") != visible.end());
+        assert(fs::file_size(blockedSlot) == 13);
+        fs::remove(blockedSlot);
+        press(ui::A); app.setName("Retry");
+        assert(app.view == ui::View::Title && app.state.profile.name == "Retry");
+        renderer.shutdown();
     }
     std::ifstream old(directory / "profile.dat");
     std::string original;
