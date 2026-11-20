@@ -11,21 +11,39 @@ pantalla inferior. El selector se recortó a los tres rivales con arte original.
 El tablero, los retratos originales de Pollito, Hamchow y Byte, y la interfaz
 proceden del juego. El atlas mixto se mantiene fuera de este repositorio.
 
-| Main menu · Menú principal | Match · Partida |
-| --- | --- |
-| ![Lower screen with play, training and profile options](home.webp) | ![Gold and blue chess pieces with Pollito on the lower screen](match.webp) |
+Selecciona cualquier captura para verla a tamaño completo. / Select any capture to open it at full size.
 
-| Rivals · Rivales | Profiles · Perfiles |
-| --- | --- |
-| ![Cropped original rivals Pollito, Hamchow and Byte](rivals.webp) | ![Three synthetic player slots with distinct portraits](profiles.webp) |
+### Match · Partida
 
-| Trophy leaderboard · Tabla de trofeos | Diagnostics · Diagnósticos |
-| --- | --- |
-| ![Three synthetic profiles ranked with their trophy progress](trophies.webp) | ![Startup diagnostics with pass, warning and skipped results](diagnostics.webp) |
+[![Gold and blue chess pieces with Pollito on the lower screen](match.webp)](match.webp)
 
-| Training · Entrenamiento | Tournament · Torneo |
-| --- | --- |
-| ![Lower screen offering puzzles, Academy and other training modes](training.webp) | ![Offline tournament setup with four- and eight-player options](tournament.webp) |
+### Main menu · Menú principal
+
+[![Lower screen with play, training and profile options](home.webp)](home.webp)
+
+### Rivals · Rivales
+
+[![Cropped original rivals Pollito, Hamchow and Byte](rivals.webp)](rivals.webp)
+
+### Profiles · Perfiles
+
+[![Three synthetic player slots with distinct portraits](profiles.webp)](profiles.webp)
+
+### Trophy leaderboard · Tabla de trofeos
+
+[![Three synthetic profiles ranked by trophy progress](trophies.webp)](trophies.webp)
+
+### Diagnostics · Diagnósticos
+
+[![Startup diagnostics with pass, warning and skipped results](diagnostics.webp)](diagnostics.webp)
+
+### Training · Entrenamiento
+
+[![Lower screen offering puzzles and Academy](training.webp)](training.webp)
+
+### Tournament · Torneo
+
+[![Offline tournament setup with four- and eight-player options](tournament.webp)](tournament.webp)
 
 ## Repository art · Arte del repositorio
 
@@ -34,6 +52,8 @@ original cover generated with the integrated image tool and resized to 1280 × 6
 The prompt specified dark navy 16-bit pixel art, purple lines, gold and blue chess pieces, a generic unbranded
 dual-screen handheld, “3DS CHESS” and “A Dual-Screen Chess Adventure”.
 The handheld illustration is cover art. The gallery above depicts the actual UI.
+
+[¡A divertirse!](a-divertirse.webp) is an original generated editorial illustration of Jensen Huang and Elon Musk. / Es una ilustración editorial generada de Jensen Huang y Elon Musk, sin afiliación oficial.
 
 [English README](../../README.md) · [README en español](../README_ES.md) ·
 [Asset rights](../ASSET_RIGHTS.md)

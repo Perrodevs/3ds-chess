@@ -6,6 +6,8 @@ releases. No historical commits or version tags are inferred from those reports.
 
 ## Unreleased
 
+- Feature RC2 in both repository overviews, enlarge gameplay captures and document the console homebrew setup.
+
 - Redesign the project readme in English and Spanish, with original cover art and reviewed captures from the 1.4.0 RC2 host renderer.
 - Document build requirements, architecture, testing, contribution and security reporting for the 1.1.0 RC Legacy default branch.
 - Add issue forms, a pull request template and minimal host checks. Document the private remote, repository metadata and asset rights.

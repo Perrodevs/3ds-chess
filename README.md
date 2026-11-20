@@ -8,30 +8,30 @@
 
 ![Language: C++17](docs/media/cpp17.svg) ![Platform: Nintendo 3DS homebrew](docs/media/platform.svg) ![Status: release candidate — hardware validation pending](docs/media/status.svg)
 
+**Featured build · 1.4.0 RC2.** The overview describes the latest candidate, which still needs physical validation. The source on the default branch is 1.1.0 RC Legacy. [Open the RC2 branch](https://github.com/Perrodevs/3ds-chess/tree/fix/stability-quality-update).
+
 ## Gallery
 
-These images come from the game's desktop test renderer on **1.4.0 RC2**. The profiles are synthetic. The gallery labels its source so you can tell which screens belong to the newer candidate.
+The board below is a close-up from the **1.4.0 RC2** desktop test renderer. Open the full dual-screen capture to inspect the controls and rival dialogue.
 
-| Main menu | Match |
+[![Large board detail with gold and blue pieces](docs/media/match-board.webp)](docs/media/match.webp)
+
+[Open the full match capture](docs/media/match.webp) · [Browse all eight full-size captures](docs/media/README.md)
+
+## What's in 1.4.0 RC2
+
+| Area | Latest candidate |
 | --- | --- |
-| ![Lower-screen menu with play, training and profiles](docs/media/home.webp) | ![Gold and blue pieces, with Pollito's greeting on the lower screen](docs/media/match.webp) |
-
-[View rivals, profiles, trophies, diagnostics and training →](docs/media/README.md)
-
-## What you can play on `main`
-
-| Area | Included in 1.1.0 RC Legacy |
-| --- | --- |
-| Gameplay | Offline AI, local two-player and practice with undo. Optional clocks, hints, game review and rematches. |
-| Chess engine | Native legal move generation and six difficulty levels. Classical chess plus Chess960, Three-check and King of the Hill. |
+| Gameplay | Offline AI, local two-player and practice with undo. Optional clocks, hints, review and rematches. |
+| Chess engine | Native move generation and six difficulty levels. Classical chess, Chess960, Three-check and King of the Hill. |
 | Training | Academy, puzzles, opening explorer, position editor and custom challenges. |
-| Rivals | 40 opponents with portraits, expressions and fictional lines. |
-| Progression | Three independent profiles, Career, Survival, tournaments and a 19-trophy room. |
-| Customization | Board and piece options, cosmetic shop, optional music and reduced motion. |
-| Localization | Spanish interface and selectable move notation. Full Spanish/English UI arrives on the 1.2 branch. |
-| Diagnostics | The startup checks and log viewer arrive on the diagnostic and stability branches. |
+| Rivals | 50 opponents with portraits, expressions and fictional lines. Match reactions appear on the lower screen. |
+| Progression | Three independent profiles, Career, Survival, tournaments and a local leaderboard for 20 trophies. |
+| Customization | Board and piece options, a cosmetic shop, optional music and reduced motion. |
+| Localization | Spanish and English interface, with independently selectable move notation. |
+| Diagnostics | Startup SD and profile checks, a diagnostic view and rotating local logs. |
 
-**Controls** · The D-pad moves the cursor, **A** confirms, **B** returns, **START** pauses and **X** requests a hint. Menus on the lower screen accept touch. [Complete controls guide](docs/CONTROLS_GUIDE.md)
+**Controls** · Use the D-pad to move, **A** to confirm, **B** to go back, **START** to pause and **X** for a hint. The lower menus also support touch. [Controls guide](docs/CONTROLS_GUIDE.md)
 
 ## Branches and verification
 
@@ -53,9 +53,19 @@ C++17, devkitARM and libctru run the game natively. Citro2D/Citro3D render the t
 
 A clean checkout supports the [host engine checks](docs/TESTING.md#current-checkout). A full game build needs devkitPro's 3DS toolchain and an authorized portrait atlas supplied separately. [Build prerequisites and commands](docs/BUILDING.md)
 
-### Local installation
+### Play on a Nintendo 3DS
 
-With Homebrew Launcher already available, place an authorized `3ds-chess.3dsx` and `3ds-chess.smdh` in `SD:/3ds/3ds-chess/` and launch **3DS Chess**. Back up the folder before replacing the executable. [Troubleshooting](docs/TROUBLESHOOTING.md)
+For the console setup documented here, you need:
+
+- **Luma3DS** is the custom firmware that enables running homebrew.
+- **boot9strap** loads Luma3DS when you turn on the console.
+- **Homebrew Launcher** is the menu that opens `.3dsx` apps and games such as 3DS Chess.
+
+Set up the console using the [3DS Hacks Guide](https://3ds.hacks.guide/finalizing-setup). Back up `SD:/3ds/3ds-chess/`, then copy the authorized `3ds-chess.3dsx` and `3ds-chess.smdh` there. Open **Homebrew Launcher** and choose **3DS Chess**. [Troubleshooting](docs/TROUBLESHOOTING.md)
+
+**You're ready. Have fun!**
+
+![¡A divertirse! Fictional pixel-art illustration of Jensen Huang, NVIDIA founder, and Elon Musk smiling over a chessboard](docs/media/a-divertirse.webp)
 
 ## Contributing, rights and credits
 
