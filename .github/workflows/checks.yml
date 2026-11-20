@@ -1,0 +1,28 @@
+name: Host checks
+
+on:
+  push:
+    branches: [main, 'docs/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  core:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Check documentation links
+        run: python3 .github/scripts/check_docs.py
+      - name: Build host engine tests
+        run: make -j2 HOST_CXX=g++ build/test_core build/test_strength
+      - name: Run rules and search tests
+        run: |
+          ./build/test_core
+          ./build/test_strength

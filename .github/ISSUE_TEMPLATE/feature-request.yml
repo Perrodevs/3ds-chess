@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest a focused improvement for 3DS Chess.
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem this solves
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed feature and expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: performance
+    attributes:
+      label: Old 3DS and performance considerations
+      description: Consider responsiveness, memory, SD I/O and save compatibility where relevant.

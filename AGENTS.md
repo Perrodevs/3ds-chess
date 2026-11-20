@@ -2,9 +2,18 @@
 
 These instructions apply to all future work in this repository.
 
-## Local Git only
+## Local Git and the private remote
 
-- Keep Git local. Do not create remotes, publish to GitHub or run `git push`.
+- The authorized remote is the private `origin`, `Perrodevs/3ds-chess`. Keep
+  all other work local. Push only when the owner authorizes the scope.
+- Before pushing, verify the target and its visibility, compare its branch tip,
+  review the commits and assets being transferred, and verify the remote hash
+  afterward. Use explicit branch refspecs, without force or automatic tags.
+- Use independent worktrees for concurrent work. Send gameplay changes through
+  a reviewed pull request and keep `main` for accepted work. Updating its
+  presentation does not approve merging a gameplay candidate.
+- Do not change visibility, enable Pages, publish releases or distribute
+  packages without authorization.
 - Respect the owner's existing changes. Inspect `git status` and the relevant diff
   before editing or staging; stage only files or hunks belonging to the task.
 - Do not delete branches, rewrite history, amend existing commits or use destructive

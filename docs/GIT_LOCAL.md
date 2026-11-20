@@ -1,9 +1,13 @@
-# Git local de 3DS Chess
+# Git local y remoto privado de 3DS Chess
+
+El proyecto usa `origin` privado en [Perrodevs/3ds-chess](https://github.com/Perrodevs/3ds-chess). Un push requiere autorización del propietario. Compara los hashes y revisa los archivos a transferir antes de enviar una rama. Usa un worktree separado para cambios simultáneos y conserva `main` para cambios aceptados.
+
+## Origen del historial
 
 Git se inicializó en esta carpeta, con `main`, el 18 de noviembre de 2026.
 Antes de esta incorporación no existía un historial Git del proyecto. Las copias
 anteriores en `build/` y los paquetes se conservan intactos, fuera del historial.
-No se reconstruyeron commits de 0.8.x/0.9.x ni se creó un repositorio en GitHub.
+No se reconstruyeron commits de 0.8.x/0.9.x durante la inicialización local.
 
 El primer commit registra una instantánea del código actual
 **1.1.0 RC Legacy**, no una prueba de estabilidad física ni un historial anterior.
