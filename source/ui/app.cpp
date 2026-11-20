@@ -138,7 +138,7 @@ void App::beginLesson() {
     reaction = reactionFrames = 0;
     refresh();
     go(View::Game);
-    message(ai::botDialogue(rival, campaign ? ai::Dialogue::Greeting : ai::Dialogue::PuzzleStart));
+
 }
 void App::trainingComplete() {
     if (!trainingActive) return;
@@ -183,7 +183,7 @@ void App::rematch() {
     reaction = reactionFrames = 0;
     refresh();
     go(View::Game);
-    message(ai::botDialogue(state.session.bot, ai::Dialogue::Greeting));
+
 }
 void App::openReview(View origin) {
     reviewSource = state.session.game;
@@ -600,6 +600,20 @@ void App::go(View v) {
     if (openingActive && v == View::OpeningStudy) openingPractice = false;
     if (progressionActive && (v == View::Home || v == View::Training || v == View::NewGame ||
         v == View::Profiles || v == View::Modes || v == View::Career || v == View::Survival || v == View::Trophies)) leaveProgression();
+    if (v == View::TrainingEnd && trainingActive) {
+        dialogue = pendingDialogue = {};
+        dialogueMs = 0;
+        queueDialogue(ai::Dialogue::PuzzleSolved);
+    }
+    if (v == View::Game && view != View::Pause && view != View::Review &&
+        view != View::Promotion && view != View::Game && view != View::Tools &&
+        view != View::Developer && view != View::ConfirmResign && view != View::OfferDraw) {
+        dialogue = pendingDialogue = {};
+        dialogueMs = thinkingMs = 0;
+        thinkingSpoken = false;
+        queueDialogue(trainingActive && (academyMode || trainingKind != training::Kind::Campaign)
+            ? ai::Dialogue::PuzzleStart : ai::Dialogue::Greeting);
+    }
     if (view != v) diagnostics::journal().add(diagnostics::Level::Info, "ENTER_SCREEN", diagnosticArea(v), int(v));
     view = v;
     if (v == View::Tournament) tournamentSaved = true;
@@ -648,7 +662,7 @@ int App::rows() const {
     case View::Options:
         return 8;
     case View::Preferences:
-        return 4;
+        return 5;
     case View::Shop:
         return 3;
     case View::Bots:
@@ -747,8 +761,8 @@ void App::play(chess::Move m) {
     if (trainingActive && trainingKind != training::Kind::Campaign) {
         const auto attempt = trainingRun.submit(m);
         if (attempt == training::Attempt::Illegal || attempt == training::Attempt::Incorrect) {
-            message(attempt == training::Attempt::Illegal ? "Movimiento no permitido" :
-                    ai::botDialogue(state.session.bot, ai::Dialogue::Mistake));
+            if (attempt == training::Attempt::Incorrect) queueDialogue(ai::Dialogue::Mistake);
+            message(attempt == training::Attempt::Illegal ? "Movimiento no permitido" : "Intenta otra jugada.");
             audio.play(2, state.settings.sound);
             selected = -1;
             return;
@@ -788,6 +802,10 @@ void App::play(chess::Move m) {
     animPiece = moving;
     animationFrames = preferences.reducedMotion ? 0 : 8;
     bool check = state.session.game.position.check(state.session.game.position.side);
+    if (state.session.game.result == chess::Result::Playing) {
+        if (check) queueDialogue(ai::Dialogue::Check, movingSide == state.session.human);
+        else if (capture) queueDialogue(ai::Dialogue::Capture, movingSide == state.session.human);
+    }
     if (capture || check) {
         reaction = movingSide == state.session.human ? 3 : 2;
         reactionFrames = 150;
@@ -830,6 +848,58 @@ void App::openHelp(View origin) {
     helpPage = 0;
     go(View::Help);
 }
+namespace {
+constexpr int dialogueDurationMs = 3400;
+}
+void App::queueDialogue(ai::Dialogue event, bool received) {
+    if (openingActive || state.session.mode == 1) return;
+    if (preferences.reducedDialogue && (event == ai::Dialogue::Thinking ||
+        event == ai::Dialogue::Capture || event == ai::Dialogue::Check)) return;
+    const int priority = event == ai::Dialogue::Thinking ? 1 :
+        event == ai::Dialogue::Capture ? 2 : event == ai::Dialogue::Check ? 3 : 4;
+    const DialogueCue cue{event, priority, received};
+    if (dialogueMs == 0) {
+        dialogue = cue;
+        dialogueMs = dialogueDurationMs;
+    } else if (priority >= 2 && priority >= pendingDialogue.priority) {
+        pendingDialogue = cue;
+    }
+}
+void App::advanceDialogue(int64_t elapsedMs) {
+    dialogueMs = std::max<int64_t>(0, dialogueMs - std::max<int64_t>(0, elapsedMs));
+    if (dialogueMs == 0 && pendingDialogue.priority) {
+        dialogue = pendingDialogue;
+        pendingDialogue = {};
+        dialogueMs = dialogueDurationMs;
+    }
+    if (view != View::Game || !bot.running) {
+        thinkingMs = 0;
+        thinkingSpoken = false;
+        return;
+    }
+    if (!thinkingSpoken && (thinkingMs += std::clamp<int64_t>(elapsedMs, 0, 3400)) >= 650) {
+        thinkingSpoken = true;
+        if (state.session.game.moves.size() < 2 || state.session.game.moves.size() % 8 < 2)
+            queueDialogue(ai::Dialogue::Thinking);
+    }
+}
+void App::drawDialogue(Renderer &r, int y) {
+    if (dialogueMs == 0) return;
+    const auto &rival = ai::botAt(state.session.bot);
+    const int shift = preferences.reducedMotion ? 0 :
+        std::max(0, 2 - int(std::min<int64_t>(dialogueDurationMs - dialogueMs, dialogueMs) / 50));
+    const auto event = dialogue.event;
+    const auto face = event == ai::Dialogue::Thinking ? ai::Expression::Thinking :
+        event == ai::Dialogue::Loss || dialogue.received ? ai::Expression::Frustrated :
+        event == ai::Dialogue::Capture || event == ai::Dialogue::Win ? ai::Expression::Happy :
+        ai::Expression::Neutral;
+    r.rect(12, y, 296, 34, panel);
+    r.portrait(rival.portraitIndex, int(face), 14, y + 1, 1);
+    r.rawText(51 + shift, y + 4, rival.name, gold, 1, 41);
+    const char *line = !dialogue.received ? ai::botDialogue(state.session.bot, event) :
+        event == ai::Dialogue::Check ? "Buen jaque. Me toca defender." : "Buena captura. Cambio de plan.";
+    paragraph(r, 51 + shift, y + 15, line, ink, 41, 2);
+}
 void App::showResult() {
     if (!state.session.active || state.session.game.result == chess::Result::Playing)
         return;
@@ -838,6 +908,12 @@ void App::showResult() {
     hintMove = {};
     selected = -1;
     diagnostics::journal().add(diagnostics::Level::Info, "MATCH_RESULT", "terminal_scene", int(state.session.game.result));
+    dialogue = pendingDialogue = {};
+    dialogueMs = 0;
+    if (state.session.game.result != chess::Result::Draw) {
+        const bool won = (state.session.game.result == chess::Result::WhiteWin) == (state.session.human == 1);
+        queueDialogue(won ? ai::Dialogue::Loss : ai::Dialogue::Win);
+    }
     endScene.begin(state.session,pendingScene,pendingNullScene,pendingNullReward);
     pendingNullScene=0;pendingNullReward=false;
     pendingScene=space::Scene::None;
@@ -1284,9 +1360,10 @@ void App::activate() {
     if (view == View::Preferences) {
         if (focus == 3) { back(); return; }
         const auto old = preferences;
+        if (focus == 4) preferences.reducedDialogue = !preferences.reducedDialogue;
         if (focus == 0) preferences.reducedMotion = !preferences.reducedMotion;
         else if (focus == 1) preferences.pieceInfo = !preferences.pieceInfo;
-        else preferences.styleOverride = (preferences.styleOverride + 2) % 7 - 1;
+        else if (focus == 2) preferences.styleOverride = (preferences.styleOverride + 2) % 7 - 1;
         if (!preferences.save(dataDirectory + "/ui.dat")) {
             preferences = old;
             message("Error SD: opciones sin guardar");
@@ -1326,6 +1403,8 @@ void App::update(Input in, int64_t elapsedMs) {
     if(nullUnlockFrames>0)--nullUnlockFrames;
     battery.update(uint64_t(std::chrono::duration_cast<std::chrono::milliseconds>(clockNow().time_since_epoch()).count()));
     const View entryView = view;
+    const auto presentationMs = elapsedMs >= 0 ? elapsedMs :
+        std::chrono::duration_cast<std::chrono::milliseconds>(clockNow() - lastClockSample).count();
     struct ScopedClockMode {
         bool &value;
         bool previous;
@@ -1347,6 +1426,7 @@ void App::update(Input in, int64_t elapsedMs) {
     audio.music(state.settings.music, view == View::Bots ? botChoice :
                 matchMusic && state.session.mode != 1 ? state.session.bot : -1);
     ++ticks;
+    if (view == View::Game || view == View::Result || view == View::TrainingEnd) advanceDialogue(presentationMs);
     if (reactionFrames > 0)
         --reactionFrames;
     if (noticeFrames > 0)
@@ -1707,15 +1787,10 @@ void App::board(Renderer &r) {
                : opponent.tribute ? "HOMENAJE NO OFICIAL"
                                   : "PERSONAJE ORIGINAL",
                muted, 1, 23);
-        ai::Dialogue event = bot.running ? ai::Dialogue::Thinking : ai::Dialogue::Greeting;
-        if (display.result != chess::Result::Playing && currentGame) {
-            const bool humanWon = (display.result == chess::Result::WhiteWin && state.session.human == 1) ||
-                                  (display.result == chess::Result::BlackWin && state.session.human == -1);
-            event = humanWon ? ai::Dialogue::Loss : ai::Dialogue::Win;
-        } else if (trainingActive && trainingKind != training::Kind::Campaign) event = ai::Dialogue::PuzzleStart;
-        else if (check) event = ai::Dialogue::Check;
-        else if (reactionFrames > 0) event = ai::Dialogue::Capture;
-        paragraph(r, 252, 171, ai::botDialogue(id, event), blue, 22, 2);
+        if (view != View::Game && view != View::Result) {
+            const auto event = bot.running ? ai::Dialogue::Thinking : ai::Dialogue::Greeting;
+            paragraph(r, 252, 171, ai::botDialogue(id, event), blue, 22, 2);
+        }
         if (opponent.referenceElo > 0)
             r.text(252, 194, "ELO REF: " + std::to_string(opponent.referenceElo), muted, 1, 23);
     }
@@ -1795,8 +1870,9 @@ void App::bottom(Renderer &r) {
     } else if (view == View::Result) {
         r.text(12, 42, endScene.finished() ? endScene.title() : "FIN DE LA PARTIDA", gold, 2, 24);
         r.text(12, 69, state.session.game.reason, ink, 1, 49);
-        r.text(12, 88, "Monedas totales: " + std::to_string(state.profile.coins), muted, 1, 49);
-        r.text(12, 106,
+        r.text(12, dialogueMs > 0 ? 82 : 88, "Monedas totales: " + std::to_string(state.profile.coins), muted, 1, 49);
+        if (dialogueMs > 0) drawDialogue(r, 92);
+        else r.text(12, 106,
                endScene.finished() ? "Elige que quieres hacer ahora."
                                    : "A o B para saltar la animacion.",
                muted, 1, 49);
@@ -1898,13 +1974,14 @@ void App::bottom(Renderer &r) {
                muted, 1, 49);
         int boxY = timed ? 96 : 67;
         r.rect(12, boxY, 296, 148 - boxY, panel);
-        int visible = timed ? 3 : 4;
+        const bool speaking = dialogueMs > 0;
+        int visible = speaking ? (timed ? 1 : 2) : (timed ? 3 : 4);
         int pairs = (int(history.size()) + 1) / 2, start = std::max(0, pairs - visible);
         const bool exerciseGame = (openingActive && openingPractice) || (trainingActive && (academyMode || trainingKind != training::Kind::Campaign));
         if (exerciseGame) {
             const auto description = openingActive ? openings::line(openingIndex,openingBranch).goal : academyMode ? academy::lesson(lessonIndex).objective : training::exercise(trainingKind, lessonIndex).description;
             paragraph(r, 20, boxY + 6, description, gold, 46, 2);
-            paragraph(r, 20, boxY + 34, openingActive ? "Reproduce la linea de ambos colores. X: pista. Error: se conserva la posicion." : academyMode ? academyRun.feedback() : "Encuentra la mejor jugada. X muestra una pista. B cancela la seleccion.", muted, 46, 3);
+            if (!speaking) paragraph(r, 20, boxY + 34, openingActive ? "Reproduce la linea de ambos colores. X: pista. Error: se conserva la posicion." : academyMode ? academyRun.feedback() : "Encuentra la mejor jugada. X muestra una pista. B cancela la seleccion.", muted, 46, 3);
         }
         for (int row = start; !exerciseGame && row < pairs; ++row) {
             int y = boxY + 6 + (row - start) * (timed ? 14 : 16);
@@ -1913,6 +1990,7 @@ void App::bottom(Renderer &r) {
             if (row * 2 + 1 < int(history.size()))
                 r.text(181, y, history[row * 2 + 1], blue, 1, 19);
         }
+        if (speaking) drawDialogue(r, 112);
         const auto &taken = gameCaptured;
         r.text(12, 153, capturesLine(taken, 1), gold, 1, 49);
         r.text(12, 166, capturesLine(taken, -1), blue, 1, 49);
@@ -1991,7 +2069,8 @@ void App::bottom(Renderer &r) {
         menu({"Comenzar", "Volver"});
     } else if (view == View::TrainingEnd) {
         r.text(12, 43, academyMode ? "LECCION COMPLETADA" : "RETO COMPLETADO", gold, 2, 24);
-        paragraph(r, 12, 76, trainingMessage, ink, 49, 2);
+        if (dialogueMs > 0) drawDialogue(r, 65);
+        else paragraph(r, 12, 76, trainingMessage, ink, 49, 2);
         r.text(12, 101, trainingProgressSaved ? "Progreso guardado en entrenamiento." : "Error SD: progreso sin guardar.", trainingProgressSaved ? muted : red, 1, 49);
         menu({"Reintentar", academyMode ? "Siguiente leccion" : "Siguiente reto", "Volver al catalogo"});
     } else if (view == View::Tools) {
@@ -2046,8 +2125,9 @@ void App::bottom(Renderer &r) {
     } else if (view == View::Preferences) {
         menu({std::string("Reducir animaciones: ") + (preferences.reducedMotion ? "si" : "no"),
               std::string("Informacion de pieza: ") + (preferences.pieceInfo ? "si" : "no"),
-              std::string("Estilo IA: ") + (preferences.styleOverride < 0 ? "por rival" : ai::styleName(ai::Style(preferences.styleOverride))), "Volver"});
-        paragraph(r, 12, 148, developerEnabled ? "SELECT abre Developer. El historial sigue disponible dentro del panel y en Herramientas." : "SELECT durante la partida abre el historial. Las opciones no cambian las reglas ni el reloj.", muted, 49, 3);
+              std::string("Estilo IA: ") + (preferences.styleOverride < 0 ? "por rival" : ai::styleName(ai::Style(preferences.styleOverride))), "Volver",
+              std::string("Dialogos: ") + (preferences.reducedDialogue ? "reducidos" : "normales")});
+        paragraph(r, 12, 166, developerEnabled ? "SELECT abre Developer. El historial sigue disponible dentro del panel y en Herramientas." : "SELECT durante la partida abre el historial. Las opciones no cambian las reglas ni el reloj.", muted, 49, 3);
     } else if (view == View::Stats) {
         auto &p = state.profile;
         r.text(12, 41,

@@ -9,11 +9,11 @@ int main() {
     std::string file=std::string(path)+"/ui.dat";
     ui::Preferences p; assert(!p.load(file));
     p.reducedMotion=true; assert(p.save(file));
-    p.pieceInfo=false; assert(p.save(file));
+    p.pieceInfo=false; p.reducedDialogue=true; assert(p.save(file));
     ui::Preferences loaded; assert(loaded.load(file));
-    assert(loaded.reducedMotion&&!loaded.pieceInfo);
+    assert(loaded.reducedMotion&&!loaded.pieceInfo&&loaded.reducedDialogue);
     {std::ofstream f(file); f<<"UI01";}
-    assert(loaded.load(file)); assert(loaded.reducedMotion&&loaded.pieceInfo);
+    assert(loaded.load(file)); assert(loaded.reducedMotion&&loaded.pieceInfo&&!loaded.reducedDialogue);
     {ui::App a(path);a.init();economy::start(a.state,1,0,1,0);a.view=ui::View::Game;
      assert(a.state.session.game.play({12,28,0}));
      auto fen=a.state.session.game.position.fen();

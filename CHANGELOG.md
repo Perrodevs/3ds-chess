@@ -8,6 +8,8 @@ releases. No historical commits or version tags are inferred from those reports.
 
 - Diagnose interrupted log writes in memory, show the session identifier, and check legacy backups even without a primary.
 
+- Queue match dialogue by event with a timed lower-screen portrait panel, and add a per-profile option to reduce frequent commentary.
+
 - Ask for a name when creating a profile and retain a one-tap suggested-name fallback. Report invalid names, keyboard failures and profile I/O stages without recording player names.
 
 ## 1.4.0 RC1 — Diagnostic System

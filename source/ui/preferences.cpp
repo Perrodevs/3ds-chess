@@ -7,9 +7,9 @@ namespace ui {
 static bool read(const std::string &path, Preferences &out) {
     std::ifstream f(path, std::ios::binary);
     if (!f) return false;
-    char bytes[10];
+    char bytes[11];
     f.read(bytes, sizeof(bytes));
-    if (f.bad() || f.gcount() == 10) return false;
+    if (f.bad() || f.gcount() == sizeof(bytes)) return false;
     std::string data(bytes, size_t(f.gcount()));
     if (data.size() == 8 && data.substr(0, 4) == "UI01") {
         if ((data[4] != '0' && data[4] != '1') || (data[5] != '0' && data[5] != '1') ||
@@ -18,6 +18,12 @@ static bool read(const std::string &path, Preferences &out) {
         if ((data[4] != '0' && data[4] != '1') || (data[5] != '0' && data[5] != '1') ||
             data[6] < '0' || data[6] > '6' || data[7] != char(data[4] ^ data[5] ^ data[6]) || data[8] != '\n') return false;
         out.styleOverride = data[6] - '0' - 1;
+    } else if (data.size() == 10 && data.substr(0, 4) == "UI03") {
+        if ((data[4] != '0' && data[4] != '1') || (data[5] != '0' && data[5] != '1') ||
+            data[6] < '0' || data[6] > '6' || (data[7] != '0' && data[7] != '1') ||
+            data[8] != char(data[4] ^ data[5] ^ data[6] ^ data[7]) || data[9] != '\n') return false;
+        out.styleOverride = data[6] - '0' - 1;
+        out.reducedDialogue = data[7] == '1';
     } else return false;
     out.reducedMotion = data[4] == '1'; out.pieceInfo = data[5] == '1';
     return true;
@@ -29,10 +35,11 @@ bool Preferences::load(const std::string &path) {
 }
 bool Preferences::save(const std::string &path) const {
     if (styleOverride < -1 || styleOverride > 5) return false;
-    std::string data = "UI02";
+    std::string data = "UI03";
     data += reducedMotion ? '1' : '0'; data += pieceInfo ? '1' : '0';
     data += char('0' + styleOverride + 1);
-    data += char(data[4] ^ data[5] ^ data[6]); data += '\n';
+    data += reducedDialogue ? '1' : '0';
+    data += char(data[4] ^ data[5] ^ data[6] ^ data[7]); data += '\n';
     auto tmp = path + ".tmp";
     FILE *f = std::fopen(tmp.c_str(), "wb");
     if (!f) return false;

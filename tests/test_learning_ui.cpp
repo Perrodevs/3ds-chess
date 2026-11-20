@@ -1,4 +1,5 @@
 #include "ui/app.hpp"
+#include <algorithm>
 #include <cassert>
 #include <filesystem>
 #include <fstream>
@@ -12,6 +13,57 @@ void setGame(ui::App &a,const std::vector<const char*> &moves) {
     economy::start(a.state,2,1,1,0);
     for(auto u:moves) { std::string s=u; assert(a.state.session.game.play({chess::square(s.substr(0,2)),chess::square(s.substr(2,2)),0})); }
     a.view=ui::View::Game;
+}
+bool shows(ui::App &a, graphics::Renderer &r, const std::string &line) {
+    a.draw(r);
+    const auto &messages = r.visibleTexts();
+    if (std::find(messages.begin(), messages.end(), line) != messages.end()) return true;
+    std::cerr << "Missing dialogue: " << line << "\n";
+    return false;
+}
+void dialogueFixture(ui::App &a, const char *fen) {
+    auto &game = a.state.session.game;
+    game = {};
+    assert(chess::Position::fromFen(fen, game.position));
+    game.initialFen = game.position.fen();
+    game.positions = {game.position.key()};
+}
+void dialogueScenarios(const std::string &root, graphics::Renderer &r) {
+    using localization::Language;
+    for (const auto language : {Language::Spanish, Language::English}) {
+        const bool english = language == Language::English;
+        const auto path = root + (english ? "/en" : "/es");
+        std::filesystem::create_directories(path);
+        assert(localization::saveLanguage(path+"/language.dat", language));
+        ui::App a(path); a.init();
+        key(a, ui::A); tap(a, 48); tap(a, 173);
+        assert(a.view == ui::View::Game);
+        const auto greeting = localization::translate(ai::botDialogue(0, ai::Dialogue::Greeting));
+        assert(shows(a,r,greeting));
+        a.update({}, 3300); assert(shows(a,r,greeting));
+        // A capture before the greeting expires must wait its turn.
+        dialogueFixture(a,"4k3/8/8/8/8/3r4/4P3/4K3 w - - 0 1");
+        key(a,ui::A); key(a,ui::Left); key(a,ui::Up); key(a,ui::A);
+        assert(a.state.session.game.moves.size()==1 && shows(a,r,greeting));
+        a.update({},100);
+        assert(shows(a,r,english?"Nice capture. Time for a new plan.":"Buena captura. Cambio de plan."));
+        // A timed pause leaves the gameplay dialogue clock alone.
+        key(a,ui::Start); a.update({},5000); key(a,ui::Start);
+        assert(shows(a,r,english?"Nice capture. Time for a new plan.":"Buena captura. Cambio de plan."));
+        // Restart as a new app session for a received check and the result.
+        std::filesystem::create_directories(path+"/check");
+        assert(localization::saveLanguage(path+"/check/language.dat", language));
+        ui::App b(path+"/check"); b.init();
+        key(b,ui::A); tap(b,48); tap(b,173); assert(b.view==ui::View::Game);
+        dialogueFixture(b,"5k2/8/8/8/8/8/4Q3/4K3 w - - 0 1");
+        b.update({},3400);
+        key(b,ui::A); key(b,ui::Right); key(b,ui::Up); key(b,ui::A);
+        assert(b.state.session.game.position.check(-1));
+        assert(shows(b,r,english?"Good check. Time to defend.":"Buen jaque. Me toca defender."));
+        key(b,ui::Start); tap(b,132); tap(b,130);
+        assert(b.view==ui::View::Result);
+        assert(shows(b,r,localization::translate(ai::botDialogue(0,ai::Dialogue::Win))));
+    }
 }
 std::string bytes(const std::string&p){std::ifstream f(p,std::ios::binary);return {std::istreambuf_iterator<char>(f),{}};}
 }
@@ -85,6 +137,7 @@ int main(){
  key(a,ui::B); tap(a,96); snap(a,r,"challenges");
  a.view=ui::View::Game; a.state.session.human=-1;
  snap(a,r,"black-bottom");
+ dialogueScenarios(dir,r);
  std::filesystem::remove_all(dir);
  std::cout<<"Learning UI: undo, read-only review, rematch, training isolation, puzzle, orientation passed\n";
 }

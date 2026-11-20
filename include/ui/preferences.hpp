@@ -5,6 +5,7 @@ namespace ui {
 struct Preferences {
     bool reducedMotion = false;
     bool pieceInfo = true;
+    bool reducedDialogue = false;
     int styleOverride = -1; // -1 selects the rival profile, 0..5 override it.
     bool load(const std::string &path);
     bool save(const std::string &path) const;

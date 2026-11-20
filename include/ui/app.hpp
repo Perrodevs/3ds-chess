@@ -198,6 +198,17 @@ class App {
     void requestHint();
     void openHelp(View origin);
     void showResult();
+    void queueDialogue(ai::Dialogue event, bool received = false);
+    void advanceDialogue(int64_t elapsedMs);
+    void drawDialogue(graphics::Renderer &, int y);
+    struct DialogueCue {
+        ai::Dialogue event = ai::Dialogue::Greeting;
+        int priority = 0;
+        bool received = false;
+    };
+    DialogueCue dialogue, pendingDialogue;
+    int64_t dialogueMs = 0, thinkingMs = 0;
+    bool thinkingSpoken = false;
     graphics::Audio audio;
     int focus = 0, selected = -1, cursor = 12, promotion = 0, shopIndex = 0, animationFrames = 0,
         flash = 0;
