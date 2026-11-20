@@ -1723,7 +1723,7 @@ void App::board(Renderer &r) {
     if(theme==economy::NullBoard){
         for(int i=0;i<14;++i){r.rect(12+i*16,5,5,2,rgb(181,101,238));r.rect(12+i*16,234,5,2,rgb(181,101,238));}
     }
-    auto legal = selected >= 0 && view != View::Review ? p.legal() : chess::MoveList{};
+    const auto destinations = legalDestinations.get(p, view == View::Review ? -1 : selected);
     int skin = state.profile.equipped[1] == 5 ? 1 : state.profile.equipped[1] == 6 ? 2 : 0;
     bool check = p.check(p.side);
     chess::Move last =
@@ -1739,14 +1739,12 @@ void App::board(Renderer &r) {
             r.border(x + 1, y + 1, 26, 26, red, 2);
         if (!(view == View::Game && animationFrames && sq == animMove.to))
             r.piece(p.board[sq], x + 2, y + 2, skin);
-        for (auto m : legal)
-            if (m.from == selected && m.to == sq) {
-                if (p.board[sq])
-                    r.border(x + 2, y + 2, 24, 24, blue);
-                else
-                    r.rect(x + 12, y + 12, 4, 4, blue);
-                break;
-            }
+        if (destinations & (uint64_t{1} << sq)) {
+            if (p.board[sq])
+                r.border(x + 2, y + 2, 24, 24, blue);
+            else
+                r.rect(x + 12, y + 12, 4, 4, blue);
+        }
         if (sq == cursor && view != View::Review && view != View::OpeningStudy)
             r.border(x, y, 28, 28, (flash % 20 < 10) ? ink : gold);
     }

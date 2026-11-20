@@ -38,7 +38,34 @@ void waitHint(ui::App &app) {
     assert(app.suggestedMove().from >= 0);
 }
 } // namespace
+static void legalOverlay() {
+    ui::LegalDestinations overlay;
+    const auto verify = [&](const chess::Position &position) {
+        for (int square = 0; square < 64; ++square) {
+            uint64_t expected = 0;
+            for (const auto &move : position.legal())
+                if (move.from == square) expected |= uint64_t{1} << move.to;
+            assert(overlay.get(position, square) == expected);
+            assert(overlay.get(position, square) == expected);
+        }
+    };
+    const auto initial = chess::Position::initial();
+    verify(initial);
+    verify(initial.after({12,28,0}));
+    chess::Position position;
+    assert(chess::Position::fromFen("r3k2r/8/8/3pP3/8/8/8/R3K2R w KQkq d6 0 1",position));
+    verify(position);
+    const int king = chess::square("e1"), pawn = chess::square("e5");
+    assert(overlay.get(position,king) & (uint64_t{1} << chess::square("g1")));
+    position.castling = 0;
+    assert(!(overlay.get(position,king) & (uint64_t{1} << chess::square("g1"))));
+    assert(overlay.get(position,pawn) & (uint64_t{1} << chess::square("d6")));
+    position.ep = -1;
+    assert(!(overlay.get(position,pawn) & (uint64_t{1} << chess::square("d6"))));
+    assert(!overlay.get(position,-1) && !overlay.get(position,64));
+}
 int main() {
+    legalOverlay();
     char path[] = "/tmp/3ds-polish-XXXXXX";
     assert(mkdtemp(path));
     graphics::Renderer renderer;

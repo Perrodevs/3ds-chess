@@ -9,6 +9,7 @@
 #include "ui/onboarding.hpp"
 #include "ui/review.hpp"
 #include "ui/preferences.hpp"
+#include "ui/legal_destinations.hpp"
 #include "tournament/tournament.hpp"
 #include "archive/archive.hpp"
 #include "progression/progression.hpp"
@@ -235,6 +236,7 @@ class App {
     bool clockRunning() const;
     void advanceClock(int64_t elapsedMs);
     void syncClock();
+    LegalDestinations legalDestinations;
     chess::Move animMove;
     int animPiece = 0;
     bool context = false, claimIntent = false, audioReady = false, audioAttempted = false;

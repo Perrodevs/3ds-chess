@@ -6,6 +6,8 @@ releases. No historical commits or version tags are inferred from those reports.
 
 ## Unreleased
 
+- Reuse selected-piece destination masks across unchanged board frames and replace repeated scans with one bit test per square.
+
 - Add a read-only local trophy leaderboard with a stable slot-order tiebreak and per-profile Career, tournament and Survival details.
 
 - Diagnose interrupted log writes in memory, show the session identifier, and check legacy backups even without a primary.
