@@ -6,6 +6,8 @@ releases. No historical commits or version tags are inferred from those reports.
 
 ## Unreleased
 
+## 1.4.0 RC2 — Stability and Quality (physical validation pending)
+
 - Use libctru-backed directory creation for isolated startup probes. The linked ARM newlib returned ENOSYS from mkdtemp and left the game blocked at the SD check.
 
 - Verify the real Byte/Jensen mate unlock and reject a Developer-forced win; exercise profile creation recovery from a blocked SD path.

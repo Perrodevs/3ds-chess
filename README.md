@@ -1,6 +1,14 @@
 # 3DS Chess
 
-**1.3.0 RC1 — 50 Rivals; pendiente de validación física.**
+**1.4.0 RC2 — Stability and Quality. Pendiente de validación física.**
+
+[Informe de cambios, mediciones y pruebas](docs/STABILITY_140_RC2.md) ·
+[Pruebas para la consola](docs/PHYSICAL_TESTS_140_RC2.md).
+
+El diagnóstico inicial comprueba la tarjeta SD con archivos temporales propios.
+Los perfiles permiten elegir un nombre o usar el sugerido. La sala de trofeos
+abre la clasificación local de perfiles con SELECT. Los diálogos de partida
+aparecen en la pantalla inferior. Se pueden reducir desde Opciones → Accesibilidad.
 
 50 rivales: Kasparov, Tal, Fischer, Ada, Wesker, Enderman, GLaDOS, Linus y NULL
 se suman a los41 anteriores sin cambiar sus IDs. NULL usa tendencias offline de
