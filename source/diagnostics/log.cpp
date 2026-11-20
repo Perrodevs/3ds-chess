@@ -86,18 +86,23 @@ void Journal::add(Level level, const char *code, const char *stage, int value) {
 bool Journal::flush() {
     if (!available()) return false;
     if (!count) return true;
+    const auto fail = [&](const char *stage, int error) {
+        failed = true;
+        add(Level::Error, "JOURNAL_IO_FAILED", stage, error);
+        count = dropped = 0;
+        return false;
+    };
     const auto path = directory + "/session.log";
     const auto old = directory + "/session.previous.log";
     struct stat info{};
     if (stat(path.c_str(), &info) == 0 && info.st_size >= MaxLogBytes - MaxBatchBytes) {
         if ((std::remove(old.c_str()) != 0 && errno != ENOENT) ||
             std::rename(path.c_str(), old.c_str()) != 0) {
-            failed = true;
-            return false;
+            return fail("rotate_log", errno);
         }
     }
     FILE *file = std::fopen(path.c_str(), "ab");
-    if (!file) { failed = true; return false; }
+    if (!file) return fail("open_log", errno);
     // A newline also separates a final partial record from the next batch.
     bool ok = std::fprintf(file, "\nSESSION %llu dropped=%u\n", session, dropped) > 0;
     for (size_t i = 0; i < count && ok; ++i) {
@@ -105,10 +110,12 @@ bool Journal::flush() {
         ok = std::fprintf(file, "+%us [%s] %.32s %.32s result=%d\n",
                           e.seconds, name(e.level), e.code, e.stage, e.value) > 0;
     }
-    ok = (std::fclose(file) == 0) && ok;
+    const int writeError = ok ? 0 : errno;
+    const int closed = std::fclose(file);
+    if (!ok) return fail("write_log", writeError);
+    if (closed != 0) return fail("close_log", errno);
     count = dropped = 0;
-    failed = !ok;
-    return ok;
+    return true;
 }
 void Journal::end() {
     if (!active) return;

@@ -46,7 +46,9 @@ int main() {
     Journal blocked;
     assert(!blocked.begin(root, "ES"));
     blocked.add(Level::Error, "VISIBLE_IN_RAM", "open_failure");
-    assert(blocked.errors() == 1 && !blocked.flush());
+    assert(blocked.errors() == 2 && !blocked.flush());
+    assert(std::string(blocked.error(1).code) == "JOURNAL_IO_FAILED");
+    assert(std::string(blocked.error(1).stage) == "open_log");
     fs::remove_all(logs / "session.log");
     Journal limited;
     assert(limited.begin(root, "ES"));

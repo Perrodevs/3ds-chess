@@ -226,7 +226,7 @@ void Console::tick() {
             if (exists(path + "/language.dat") && !localization::loadLanguage(path + "/language.dat", language))
                 recovered = true;
         }
-        if (!occupied && exists(root + "/profile.dat")) {
+        if (!occupied && (exists(root + "/profile.dat") || exists(root + "/profile.dat.bak"))) {
             economy::State legacy;
             storage::Store store(root);
             valid = store.load(legacy) && valid;
@@ -378,6 +378,9 @@ void Console::draw(graphics::Renderer &r) const {
             line(70, "ARMv6K / C++17", text);
             line(101, "sdmc:/3ds/3ds-chess/logs/", text);
             line(124, "session.log / session.previous.log", text);
+            line(148, tr("Sesion ", "Session ") + std::to_string(journal().id()), text);
+            line(171, journal().available() ? tr("Registro SD disponible", "SD log available")
+                                          : tr("Registro SD no disponible", "SD log unavailable"), accent);
         } else {
             for (size_t i = 0, row = 0; i < count; ++i) {
                 if ((selection == 3) != (i >= 6 && i <= 8)) continue;

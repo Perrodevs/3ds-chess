@@ -59,6 +59,13 @@ int main(int argc, char **argv) {
     assert(broken[6].status == Status::Fail && broken[7].status == Status::Skip);
     broken.update(false, false, true, false);
     assert(broken.active() && !broken.canStartGame());
+    economy::State legacyBackup;
+    std::ofstream(directory / "profile.dat.bak") << storage::encode(legacyBackup);
+    Console backupOnly(root);
+    backupOnly.start(true, false, true, false);
+    complete(backupOnly);
+    assert(backupOnly[8].status == Status::Warn);
+    fs::remove(directory / "profile.dat.bak");
     std::ofstream(directory / "profile.dat") << "legacy-corrupt";
     {
         ui::App app(root, true);
