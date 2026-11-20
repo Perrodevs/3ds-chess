@@ -65,10 +65,12 @@ Set up the console using the [3DS Hacks Guide](https://3ds.hacks.guide/finalizin
 
 **You're ready. Have fun!**
 
-![¡A divertirse! Fictional pixel-art illustration of Jensen Huang, NVIDIA founder, and Elon Musk smiling over a chessboard](docs/media/a-divertirse.webp)
+![Have fun! Fictional pixel-art illustration of Jensen Huang, NVIDIA founder, and Elon Musk smiling over a chessboard](docs/media/have-fun.webp)
 
 ## Contributing, rights and credits
 
 Start with [Contributing](CONTRIBUTING.md), [Code of conduct](CODE_OF_CONDUCT.md) and [Security](SECURITY.md). Pollitopio develops the game. The [credits and notices](docs/THIRD_PARTY.md) cover the toolchain and outside resources.
 
 The original code is [MIT licensed](LICENSE). Portraits, character identities, trademarks and other third-party work have separate rights. The mixed atlas and complete builds still require distribution review. This is an independent homebrew project. [Asset inventory](docs/ASSET_RIGHTS.md)
+
+> **Vibe-coded? Obviously. My idea, my rules. :)**

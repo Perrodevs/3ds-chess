@@ -53,7 +53,7 @@ The prompt specified dark navy 16-bit pixel art, purple lines, gold and blue che
 dual-screen handheld, “3DS CHESS” and “A Dual-Screen Chess Adventure”.
 The handheld illustration is cover art. The gallery above depicts the actual UI.
 
-[¡A divertirse!](a-divertirse.webp) is an original generated editorial illustration of Jensen Huang and Elon Musk. / Es una ilustración editorial generada de Jensen Huang y Elon Musk, sin afiliación oficial.
+[Have fun!](have-fun.webp) and [¡A divertirse!](a-divertirse.webp) are the English and Spanish versions of an original generated illustration of Jensen Huang and Elon Musk. / Es una ilustración editorial generada de Jensen Huang y Elon Musk, sin afiliación oficial.
 
 [English README](../../README.md) · [README en español](../README_ES.md) ·
 [Asset rights](../ASSET_RIGHTS.md)

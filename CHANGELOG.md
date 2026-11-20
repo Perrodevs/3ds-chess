@@ -6,6 +6,8 @@ releases. No historical commits or version tags are inferred from those reports.
 
 ## Unreleased
 
+- Localize the closing artwork for the English README and add the creator’s closing line.
+
 - Feature RC2 in both repository overviews, enlarge gameplay captures and document the console homebrew setup.
 
 - Redesign the project readme in English and Spanish, with original cover art and reviewed captures from the 1.4.0 RC2 host renderer.
