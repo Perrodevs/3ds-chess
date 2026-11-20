@@ -14,6 +14,11 @@ int main() {
     assert(loaded.reducedMotion&&!loaded.pieceInfo&&loaded.reducedDialogue);
     {std::ofstream f(file); f<<"UI01";}
     assert(loaded.load(file)); assert(loaded.reducedMotion&&loaded.pieceInfo&&!loaded.reducedDialogue);
+    std::string v2="UI02105"; // reduced motion, no piece info, style index 4.
+    v2 += char(v2[4] ^ v2[5] ^ v2[6]); v2 += '\n';
+    { std::ofstream f(file,std::ios::binary); f << v2; }
+    assert(loaded.load(file) && loaded.reducedMotion && !loaded.pieceInfo &&
+           loaded.styleOverride == 4 && !loaded.reducedDialogue);
     {ui::App a(path);a.init();economy::start(a.state,1,0,1,0);a.view=ui::View::Game;
      assert(a.state.session.game.play({12,28,0}));
      auto fen=a.state.session.game.position.fen();

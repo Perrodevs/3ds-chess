@@ -48,12 +48,14 @@ static void leaderboard(const std::string &root) {
         tap(app,207); assert(app.view==ui::View::Trophies);
     };
     render(1,false);
-    assert(manager.create(1,"Apex") && manager.create(2,"Tied"));
+    assert(manager.create(1,"Apex"));
     const auto second = manager.path(1) + "/profile.dat";
     economy::State winner; storage::Store store(manager.path(1)); assert(store.load(winner));
     winner.profile.achievements |= 1u;
     assert(store.save(winner));
     const auto before = fs::last_write_time(second);
+    render(2,false);
+    assert(manager.create(2,"Tied"));
     render(3,false);
     assert(fs::last_write_time(second)==before);
     const auto corrupt = manager.path(2) + "/profile.dat";

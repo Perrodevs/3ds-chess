@@ -63,6 +63,15 @@ void dialogueScenarios(const std::string &root, graphics::Renderer &r) {
         key(b,ui::Start); tap(b,132); tap(b,130);
         assert(b.view==ui::View::Result);
         assert(shows(b,r,localization::translate(ai::botDialogue(0,ai::Dialogue::Win))));
+
+        std::filesystem::create_directories(path+"/thinking");
+        assert(localization::saveLanguage(path+"/thinking/language.dat", language));
+        ui::App c(path+"/thinking"); c.init();
+        c.state.settings.color = -1;
+        key(c,ui::A); tap(c,48); tap(c,173); assert(c.view==ui::View::Game);
+        c.update({},0); // Start the bounded reply, without polling it in this update.
+        c.update({},3400); // The greeting expires and the thinking event is eligible.
+        assert(shows(c,r,localization::translate(ai::botDialogue(0,ai::Dialogue::Thinking))));
     }
 }
 std::string bytes(const std::string&p){std::ifstream f(p,std::ios::binary);return {std::istreambuf_iterator<char>(f),{}};}
@@ -110,6 +119,7 @@ int main(){
  while(cursor%8>h.to%8){key(a,ui::Left);--cursor;}
  key(a,ui::A); assert(a.view==ui::View::TrainingEnd);
  snap(a,r,"puzzle-complete");
+ assert(shows(a,r,localization::translate(ai::botDialogue(a.state.session.bot,ai::Dialogue::PuzzleSolved))));
  key(a,ui::Down); key(a,ui::Down); key(a,ui::A); assert(a.view==ui::View::Lessons);
  assert(a.state.session.game.moves.size()==2); assert(a.state.profile.coins==coins);
  // Abandoning an exercise must not mark it solved.
@@ -128,6 +138,7 @@ int main(){
  // Cursor starts e2: f2 -> f7 -> g7, delivering mate.
  key(a,ui::Right); for(int i=0;i<5;++i) key(a,ui::Up); key(a,ui::A); key(a,ui::Right); key(a,ui::A);
  assert(a.view==ui::View::Result); assert(progress.load());
+ assert(shows(a,r,localization::translate(ai::botDialogue(a.state.session.bot,ai::Dialogue::Loss))));
  assert(progress.progress.completed(training::Kind::Campaign,0));
  assert(a.state.profile.coins==coins);
  key(a,ui::B); key(a,ui::B); assert(a.view==ui::View::Lessons);
