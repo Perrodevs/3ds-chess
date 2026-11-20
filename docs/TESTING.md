@@ -1,3 +1,30 @@
+# Testing 3DS Chess
+
+## Current checkout
+
+`main` contains **1.1.0 RC Legacy**. The small GitHub Actions workflow runs
+the rules and search tests from a clean host checkout. It checks the new
+documentation links and media. Run the same C++ targets locally.
+
+```sh
+make -j2 build/test_core build/test_strength
+./build/test_core
+./build/test_strength
+```
+
+The full host suite needs the locally generated assets described in
+[Building](BUILDING.md). Run `make test` after provisioning them. For console
+targets, `make test-target` builds and verifies ARMv6K ELF attributes and the
+linked CP15 barrier. It does not run the executable.
+
+Use a dedicated Azahar user/SD directory and synthetic profiles for interactive
+checks. Record emulator and game versions, navigation, saves and exact
+limitations. Hardware checks require a physical Old Nintendo 3DS XL and are
+tracked separately. See [Legacy results](LEGACY_COMPLETE.md) and the
+[RC2 report](https://github.com/Perrodevs/3ds-chess/blob/fix/stability-quality-update/docs/STABILITY_140_RC2.md).
+
+## Historical notes
+
 # Navegación revisada — 2026-11-17
 
 Ver [errores reproducidos, correcciones y límites](NAVIGATION_AUDIT_090.md).

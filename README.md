@@ -1,125 +1,64 @@
+![3DS Chess — A Dual-Screen Chess Adventure](docs/media/banner.webp)
+
 # 3DS Chess
 
-**1.1.0 RC Legacy — pendiente de validacion fisica.**
+**A dual-screen chess adventure for Nintendo 3DS.** Play offline against a cast of pixel-art rivals, share the console for local two-player games, or train at your own pace. The project targets the Old Nintendo 3DS XL and uses its own C++17 chess engine.
 
-Tres perfiles, Developer con codigo `1234`, Carrera, Supervivencia, 19 trofeos,
-10 aperturas/20 lineas, editor FEN, 30 posiciones y 30 puzzles personalizados por
-perfil, Chess960/Three-check/King of the Hill con IA y bateria aproximada real.
-Desde el menu principal, SELECT abre los modos Legacy.
-[Informe completo y limites](docs/LEGACY_COMPLETE.md) · [Pruebas](docs/LEGACY_TEST_RESULTS.json).
-Ajedrez homebrew nativo C++17 para Old Nintendo 3DS XL. Offline, graficos 2D pixel art,
-dos pantallas, motor propio y 40 rivales. Se conserva una copia recuperable de 0.8.2 RC.
-[Implementacion](docs/UPDATE_090.md), [cambios](docs/CHANGELOG_090.md),
-[pruebas](docs/TESTING.md) y [auditoria anterior](docs/AUDIT_082.md).
+**English** · [Español](docs/README_ES.md) · [Gallery](#gallery) · [Build](docs/BUILDING.md) · [Roadmap](docs/ROADMAP.md) · [Contribute](CONTRIBUTING.md) · [GitHub settings](docs/GITHUB.md)
 
-## Funciones actuales
+![Language: C++17](docs/media/cpp17.svg) ![Platform: Nintendo 3DS homebrew](docs/media/platform.svg) ![Status: release candidate — hardware validation pending](docs/media/status.svg)
 
-- Editor: colocar/retirar, turno/enroque/al paso, FEN local, coleccion y practica.
-- Creador: mate1/2/3 probado contra todas las defensas o marcado pendiente;
-  captura y salida de jaque con criterios definidos, pistas y contadores propios.
-- Variantes con seis niveles, reanudacion, revision, estadisticas y medallas;
-  Chess960 usa 960 indices reproducibles y enroque rey → torre original.
-- Bateria mediante PTMU: barras 0–5/carga, aviso breve no bloqueante, sin porcentajes.
-- Inicio deliberado, ayuda de4 páginas y menús táctiles inferiores.
-- Contra IA, dos personas en una consola y práctica sin reloj/premios con deshacer.
-- 40 rivales en 8 páginas:3 originales,28 homenajes/bots ajedrecísticos,
- 8 invitados de videojuegos y Jensen Huang. [Catálogo](docs/BOTS.md).
-- 160 expresiones de 32×32, 360 diálogos ficticios breves,41 bucles musicales originales
- (menú+40 rivales) y efectos. Música apagada y efectos encendidos por defecto.
-- Reglas legales, jaque/mate/ahogado, enroques, al paso,4 promociones,
- reclamaciones triple/50 y automáticas quíntuple/75; casos habituales de material
- insuficiente. La detección general de posiciones muertas sigue incompleta.
-- Pista X con flecha, sin mover automáticamente; el reloj sigue corriendo.
-- Revisión aproximada por jugada, explicación del final, alternativa del motor,
- capturas y revancha manual con mismo rival/color/modo/reloj.
-- 8 puzzles, 8 etapas de campaña y 4 retos; progreso separado de la partida normal.
-- Academia: 10 lecciones con posiciones, movimientos reales, objetivos, pistas,
-  explicaciones, repeticion y desbloqueos persistentes; sin monedas competitivas.
-- Torneos offline de 4/8 participantes, cuadro, revancha por tablas y desempate
-  administrativo explicito. IA contra IA juega partidas reales con presupuesto,
-  una busqueda asincrona a la vez; progreso y trofeos simbolicos separados.
-- Biblioteca de 30 partidas: consulta, reproduccion, resultado, reloj, PGN y
-  eliminacion confirmada. Si se llena, rechaza nuevas entradas sin reemplazar antiguas.
-- Estadisticas nuevas por rival/color/nivel, porcentaje y rachas desde esta
-  actualizacion. El historial antiguo no se inventa; entrenamiento queda separado.
-- Seis preferencias de IA configurables, con el mismo motor y seis niveles:
-  equilibrado, agresivo, defensivo, posicional, tactico y finales.
-- Reduccion de animaciones e informacion opcional de piezas en Opciones.
-- Relojes opcionales: sin límite,3 min, 5 min, 10 min, 5+3. Pausa detiene ambos.
-- Perfil, nombre ASCII hasta 24 caracteres, estadísticas,7 logros y13 artículos.
-- Guardado principal con respaldo; entrenamiento con respaldo propio; exportación
- PGN al terminar. No hay importación PGN; cada perfil conserva una partida clasica
- y sesiones independientes de torneo/progresion/variantes.
+## Gallery
 
-## Controles y orientación
+These images come from the game's desktop test renderer on **1.4.0 RC2**. The profiles are synthetic. The gallery labels its source so you can tell which screens belong to the newer candidate.
 
-Cruceta mueve el cursor; A selecciona/acepta; B cancela/vuelve; START pausa;
-X solicita pista; SELECT abre el historial durante la partida y las estadisticas
-nuevas desde Estadisticas y logros. El tablero superior **no es táctil**.
-Menús y botones de la pantalla inferior sí lo son.
+| Main menu | Match |
+| --- | --- |
+| ![Lower-screen menu with play, training and profiles](docs/media/home.webp) | ![Gold and blue pieces, with Pollito's greeting on the lower screen](docs/media/match.webp) |
 
-Blancas son doradas y negras azules. Al jugar contra IA con negras el tablero,
-coordenadas, flechas, cursor y animación giran para dejar tus piezas abajo.
-Dos jugadores locales conserva perspectiva fija. En clasico la posicion inicial es
-fija; Chess960 permite elegir un indice reproducible.
-En revisión: izquierda/derecha recorre jugadas; arriba/inicio, abajo/final.
+[View rivals, profiles, trophies, diagnostics and training →](docs/media/README.md)
 
-## Ejecución y artefactos locales
+## What you can play on `main`
 
-La consola debe tener ya un método para ejecutar homebrew. Este proyecto no
-instala firmware ni modifica el sistema. Copia 3ds-chess.3dsx y .smdh a
-`SD:/3ds/3ds-chess/` y abre desde Homebrew Launcher.
-Los gráficos están integrados; no necesita PNG ni Python en la consola.
-NDSP necesita el DSP de la propia consola; si falta, continúa sin audio.
-No se incluye firmware DSP, claves ni un instalador CIA.
+| Area | Included in 1.1.0 RC Legacy |
+| --- | --- |
+| Gameplay | Offline AI, local two-player and practice with undo. Optional clocks, hints, game review and rematches. |
+| Chess engine | Native legal move generation and six difficulty levels. Classical chess plus Chess960, Three-check and King of the Hill. |
+| Training | Academy, puzzles, opening explorer, position editor and custom challenges. |
+| Rivals | 40 opponents with portraits, expressions and fictional lines. |
+| Progression | Three independent profiles, Career, Survival, tournaments and a 19-trophy room. |
+| Customization | Board and piece options, cosmetic shop, optional music and reduced motion. |
+| Localization | Spanish interface and selectable move notation. Full Spanish/English UI arrives on the 1.2 branch. |
+| Diagnostics | The startup checks and log viewer arrive on the diagnostic and stability branches. |
 
-**Los paquetes completos son exclusivamente para pruebas locales del propietario.**
-El atlas contiene recursos con derechos pendientes de revisión. El binario con
-piezas originales tampoco está automáticamente autorizado para publicación.
-Consulta [inventario de derechos](docs/ASSET_RIGHTS.md) y
-[aviso de uso local](docs/LOCAL_TESTING_ONLY.md). No se publica nada al compilar.
-Las piezas personales Cosunosuke se conservan solamente en private/, separadas.
+**Controls** · The D-pad moves the cursor, **A** confirms, **B** returns, **START** pauses and **X** requests a hint. Menus on the lower screen accept touch. [Complete controls guide](docs/CONTROLS_GUIDE.md)
 
-## Compilar y verificar
+## Branches and verification
 
-Entorno usado: macOS Apple Silicon, devkitPro/devkitARM, libctru, Citro2D/Citro3D,
-3ds-tools. Sin dependencias nuevas para ejecutar el juego.
+| Branch | Game version | Status |
+| --- | --- | --- |
+| `main` | **1.1.0 RC Legacy** | Default branch. [Legacy test report](docs/LEGACY_COMPLETE.md) distinguishes host, ARM and emulator checks. |
+| [Space & Language](https://github.com/Perrodevs/3ds-chess/tree/feature/space-language-update) | **1.2.0 RC2** | Bilingual UI and Space update. |
+| [50 Rivals](https://github.com/Perrodevs/3ds-chess/tree/feature/50-rivals) | **1.3.0 RC1** | Expanded rival roster. |
+| [Diagnostic System](https://github.com/Perrodevs/3ds-chess/tree/feature/diagnostic-system) | **1.4.0 RC1** | Startup checks and diagnostic logs. |
+| [Stability & Quality](https://github.com/Perrodevs/3ds-chess/tree/fix/stability-quality-update) | **1.4.0 RC2** | Latest tested candidate. Host and ARM checks passed. Azahar verified selected flows. Physical validation is pending. [Report](https://github.com/Perrodevs/3ds-chess/blob/fix/stability-quality-update/docs/STABILITY_140_RC2.md). |
 
-```sh
-make -j3 all test test-target
-make sanitize sanitize-polish sanitize-clocks sanitize-learning
-make sanitize-audit sanitize-storage sanitize-native sanitize-update
-make differential
-make audit-assets
-make dist
-```
+The [roadmap](docs/ROADMAP.md) tracks the remaining hardware and asset checks. The [changelog](CHANGELOG.md) records this branch's history.
 
-`make dist` crea ZIP para SD y fuentes, RELEASE.json y SHA256SUMS con avisos
-**LOCAL TESTING ONLY**. El empaquetador exige `--local-testing`, piezas originales
-y versión coincidente en código/binario/SMDH. Rechaza incluir la variante personal.
-Python/Pillow/python-chess se usan solo en herramientas de desarrollo; las
-herramientas instaladas están en .venv y no se empaquetan.
+[Host checks on GitHub](https://github.com/Perrodevs/3ds-chess/actions/workflows/checks.yml)
 
-## Motor, guardado y límites
+## How it works
 
-Motor C++ propio: seis niveles 0–5, PVS/alpha-beta, tabla de transposiciones y
-valoración de rey/peones/movilidad/finales. Stockfish no se integra ni enlaza;
-Stockfish 8 fue una referencia externa de pruebas en Mac. Los Elo mostrados son
-metadata de referencia, no fuerza calibrada ni una réplica real de cada persona.
+C++17, devkitARM and libctru run the game natively. Citro2D/Citro3D render the two screens, and NDSP plays optional audio when available. The custom engine runs offline and uses bounded search. Profiles and resumable games live on the SD card. [Architecture](docs/ARCHITECTURE.md)
 
-`profile.dat` integra ajustes, perfil, inventario, resultado, reloj e historial;
-`.bak` conserva el anterior. Se mantienen lectores v1/v2/v3 y entrenamiento
-TRAINING1. [Detalles](docs/STORAGE.md). Las inyecciones de fallos son pruebas de
-proceso: no certifican resistencia absoluta a cortes de alimentación de una SD.
+A clean checkout supports the [host engine checks](docs/TESTING.md#current-checkout). A full game build needs devkitPro's 3DS toolchain and an authorized portrait atlas supplied separately. [Build prerequisites and commands](docs/BUILDING.md)
 
-No hay online, comunicación entre consolas, cuentas, doblaje, editor de posiciones
-ni revisión profunda con precisión global. Se han ejecutado pruebas de host,
-sanitizadores, compilación ARMv6K y pruebas de emulación con alcance documentado.
-Batería, consumo, temperatura, audio real y suspensión física siguen sin medir.
+### Local installation
 
-## Código y recursos
+With Homebrew Launcher already available, place an authorized `3ds-chess.3dsx` and `3ds-chess.smdh` in `SD:/3ds/3ds-chess/` and launch **3DS Chess**. Back up the folder before replacing the executable. [Troubleshooting](docs/TROUBLESHOOTING.md)
 
-Módulos: source/chess, ai, graphics, ui, storage, economy y training, con cabeceras
-en include y pruebas en tests. Código propio MIT, avisos de dependencias en docs/licenses.
-Los retratos y recursos de terceros conservan sus condiciones particulares:
-[THIRD_PARTY](docs/THIRD_PARTY.md). La licencia del código no cubre esos derechos.
+## Contributing, rights and credits
+
+Start with [Contributing](CONTRIBUTING.md), [Code of conduct](CODE_OF_CONDUCT.md) and [Security](SECURITY.md). Pollitopio develops the game. The [credits and notices](docs/THIRD_PARTY.md) cover the toolchain and outside resources.
+
+The original code is [MIT licensed](LICENSE). Portraits, character identities, trademarks and other third-party work have separate rights. The mixed atlas and complete builds still require distribution review. This is an independent homebrew project. [Asset inventory](docs/ASSET_RIGHTS.md)
