@@ -1,5 +1,6 @@
 #include "ui/app.hpp"
 #include <algorithm>
+#include <sys/stat.h>
 namespace ui {
 namespace {
 constexpr auto background = graphics::rgb(20,25,36), panelColor = graphics::rgb(32,40,54),
@@ -11,6 +12,26 @@ const char *trophyName(int i) {
         "Division Diamante", "Division Maestro", "Supervivencia: 3", "Supervivencia: 5",
         "Supervivencia: 10", "Campeon de torneo", "Academia completa", "Victoria Chess960", "Victoria Three-check", "Victoria King of the Hill", "ERROR 404"};
     return names[std::clamp(i,0,19)];
+}
+constexpr int trophyTotal = 20;
+uint32_t trophyMask(const economy::Profile &profile, const progression::State &progress,
+                    const tournament::Session &tournament, const academy::Progress &academy,
+                    const variants::State *variants) {
+    uint32_t mask = profile.achievements & 127u;
+    mask |= ((progress.promotions >> 1) & 15u) << 7;
+    mask |= (progress.survivalRewards & 7u) << 11;
+    if (tournament.trophies) mask |= 1u << 14;
+    if (academy.count() == academy::lessonCount) mask |= 1u << 15;
+    if (variants) {
+        for (int i = 0; i < 3; ++i)
+            if (variants->stats[size_t(i)].wins) mask |= 1u << (16 + i);
+    }
+    if (profile.achievements & (1u << economy::Error404)) mask |= 1u << 19;
+    return mask;
+}
+bool hasFile(const std::string &path) {
+    struct stat info{};
+    return ::stat(path.c_str(), &info) == 0 || ::stat((path + ".bak").c_str(), &info) == 0;
 }
 }
 bool App::reconcileProgressionRewards() {
@@ -75,7 +96,7 @@ void App::progressionAction() {
         else back();
         return;
     }
-    if (view == View::Trophies) { back(); return; }
+    if (view == View::Trophies || view == View::TrophyLeaderboard) { back(); return; }
     if (view == View::ConfirmEndAttempt) {
         if (focus != 0) { back(); return; }
         auto candidate = progressionState;
@@ -96,17 +117,76 @@ void App::progressionAction() {
     } else message(career ? "V +3 / T +1 / D -1. Premios solo primer ascenso" :
                             "Gana para seguir; tablas o derrota terminan intento");
 }
-bool App::trophyUnlocked(int i) const {
-    if(i==19)return (state.profile.achievements&(1u<<economy::Error404))!=0;
-    if (i >= 16 && i < 19) return variantsUI && variantsUI->data().stats[size_t(i-16)].wins > 0;
-    if (i < 7) return (state.profile.achievements & (1u << i)) != 0;
-    if (i < 11) return (progressionState.promotions & (1u << (i-7+1))) != 0;
-    if (i < 14) return (progressionState.survivalRewards & (1u << (i-11))) != 0;
-    if (i == 14) return tournamentState.trophies > 0;
-    return academyStore.progress.count() == academy::lessonCount;
+bool App::trophyUnlocked(int index) const {
+    const auto mask = trophyMask(state.profile, progressionState, tournamentState,
+                                 academyStore.progress, variantsUI ? &variantsUI->data() : nullptr);
+    return index >= 0 && index < trophyTotal && (mask & (1u << index));
+}
+void App::readLeaderboard() {
+    trophyRows = {};
+    trophyCount = trophyFocus = unreadableProfiles = 0;
+    for (int slot = 0; slot < (profilesEnabled ? profiles::capacity : 1); ++slot) {
+        const auto &entry = profileManager.slots[size_t(slot)];
+        if (profilesEnabled && !entry.occupied) continue;
+        const auto path = profilesEnabled ? profileManager.path(slot) : dataDirectory;
+        economy::State profile;
+        if (!storage::Store(path).load(profile)) {
+            if (profilesEnabled) ++unreadableProfiles;
+            continue;
+        }
+        progression::State progress;
+        tournament::Session tournament;
+        academy::Store academy(path + "/academy.dat");
+        variants::State variants;
+        const auto progressPath = path + "/progression.dat";
+        const auto tournamentPath = path + "/tournament.dat";
+        bool partial = !progression::Store(progressPath).load(progress) && hasFile(progressPath);
+        partial |= !tournament::Store(tournamentPath).load(tournament) && hasFile(tournamentPath);
+        partial |= !academy.load() && hasFile(path + "/academy.dat");
+        variants::Store variantsStore(path + "/variants.dat");
+        const bool hasVariants = variantsStore.load(variants);
+        partial |= variantsStore.corrupt;
+        auto &row = trophyRows[size_t(trophyCount++)];
+        row.name = profilesEnabled ? entry.name : profile.profile.name;
+        row.slot = slot;
+        row.avatar = entry.avatar;
+        row.division = progression::division(progress.points);
+        row.wins = tournament.trophies;
+        row.survival = progress.survivalBest;
+        row.unlocked = trophyMask(profile.profile, progress, tournament, academy.progress,
+                                  hasVariants ? &variants : nullptr);
+        for (int i = 0; i < trophyTotal; ++i) row.total += (row.unlocked >> i) & 1u;
+        row.partial = partial;
+    }
+    std::sort(trophyRows.begin(), trophyRows.begin() + trophyCount,
+        [](const TrophyRow &a, const TrophyRow &b) {
+            return a.total != b.total ? a.total > b.total : a.slot < b.slot;
+        });
 }
 void App::drawProgressionTop(graphics::Renderer &r) {
     r.screenBegin(0,background);
+    if (view == View::TrophyLeaderboard) {
+        r.text(12, 12, "TABLA DE TROFEOS", accent, 2, 31);
+        for (int rank = 0; rank < trophyCount; ++rank) {
+            const auto &row = trophyRows[size_t(rank)];
+            const int y = 42 + rank * 56;
+            const auto medal = rank == 0 ? accent : rank == 1 ? textColor : graphics::rgb(194,126,83);
+            r.rect(12, y, 376, 49, panelColor);
+            if (rank == trophyFocus) r.border(12, y, 376, 49, blueColor);
+            r.rect(24, y + 9, 14, 11, medal);
+            r.rect(29, y + 20, 4, 5, medal);
+            r.rect(25, y + 25, 12, 2, medal);
+            r.rawText(26, y + 34, std::to_string(rank + 1), medal);
+            r.portrait(row.avatar, 0, 52, y + 8, 1);
+            r.rawText(96, y + 10, row.name, textColor, 1, 24);
+            r.rawText(296, y + 10, std::to_string(row.total) + " / " + std::to_string(trophyTotal), medal);
+            r.rect(96, y + 30, 252, 4, dim);
+            if (row.total) r.rect(96, y + 30, row.total * 252 / trophyTotal, 4, medal);
+        }
+        if (!trophyCount) r.text(12, 62, "Sin perfiles disponibles", dim);
+        if (unreadableProfiles) r.text(12, 219, "Algunas ranuras no se pudieron leer.", dim);
+        return;
+    }
     if (view == View::Trophies) {
         r.text(12,9,"SALA DE TROFEOS",accent,2,30);
         for (int i=0;i<20;++i) {
@@ -139,11 +219,35 @@ void App::drawProgressionBottom(graphics::Renderer &r) {
         r.text(12,214,"Cada modo guarda por separado.",dim,1,49);
 
         if (!progressionReady) r.text(12,225,"Datos del modo no disponibles.",accent,1,49);
+    } else if (view == View::TrophyLeaderboard) {
+        for (int rank = 0; rank < trophyCount; ++rank) {
+            const auto &row = trophyRows[size_t(rank)];
+            button(r, 12, 36 + 22 * rank, 296, "#" + std::to_string(rank + 1) + "  " +
+                row.name + "  " + std::to_string(row.total) + "/" + std::to_string(trophyTotal),
+                rank == trophyFocus, true);
+        }
+        if (trophyCount) {
+            const auto &row = trophyRows[size_t(trophyFocus)];
+            r.text(12, 111, "DIVISION: " + std::string(progression::divisionName(row.division)), accent);
+            r.text(12, 126, "Torneos ganados: " + std::to_string(row.wins), textColor);
+            r.text(12, 141, "MEJOR RACHA: " + std::to_string(row.survival), textColor);
+            int y = 159;
+            if (row.partial) r.text(12, y, "Progreso parcial: hay datos ilegibles.", dim);
+            else {
+                for (int i = trophyTotal - 1; i >= 0 && y < 192; --i) {
+                    if (!(row.unlocked & (1u << i))) continue;
+                    r.text(12, y, trophyName(i), dim);
+                    y += 11;
+                }
+            }
+        }
+        menu({"Volver"});
     } else if (view == View::Trophies) {
         r.text(12,43,trophyName(trophyIndex),accent,1,49);
         r.text(12,67,trophyUnlocked(trophyIndex)?"DESBLOQUEADO":"BLOQUEADO",textColor,1,49);
         r.text(12,94,"Se concede por eventos guardados del juego.",dim,1,49);
         r.text(12,116,"No vuelve a entregar monedas al consultarlo.",dim,1,49);
+        button(r,12,142,296,"TABLA DE TROFEOS [SELECT]",false);
         button(r,12,170,140,"< Anterior",false); button(r,166,170,142,"Siguiente >",false);
         menu({"Volver"});
     } else if (view == View::ConfirmEndAttempt) {

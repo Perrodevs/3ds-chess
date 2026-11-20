@@ -254,7 +254,7 @@ const char *diagnosticArea(View view) {
     case View::Survival: return "survival";
     case View::Shop: return "shop_inventory";
     case View::Library: case View::ConfirmDelete: return "library";
-    case View::Trophies: return "trophies";
+    case View::Trophies: case View::TrophyLeaderboard: return "trophies";
     case View::Language: return "language";
     case View::ComposerWorkshop: return "composer";
     case View::VariantWorkshop: return "variants";
@@ -518,6 +518,7 @@ void App::back() {
     case View::Career: parent = View::Modes; break;
     case View::Survival: parent = View::Modes; parentRow = 1; break;
     case View::Trophies: parent = trophyReturn; parentRow = 2; break;
+    case View::TrophyLeaderboard: parent = View::Trophies; break;
     case View::ConfirmEndAttempt: parent = View::Survival; parentRow = 1; break;
     case View::DeveloperPassword: parent = View::Options; parentRow = 6; break;
     case View::Developer: parent = View::Game; break;
@@ -652,7 +653,7 @@ int App::rows() const {
     case View::Career:
     case View::Survival: return 4;
     case View::ConfirmEndAttempt: return 2;
-    case View::Trophies: return 1;
+    case View::Trophies: case View::TrophyLeaderboard: return 1;
     case View::Profiles: return 4;
     case View::ProfileSlot: return 5;
     case View::ConfirmProfileDelete: return 2;
@@ -683,7 +684,7 @@ int App::rowY() const {
     if (view == View::Title)
         return 72;
     if (view == View::Tournament || view == View::Library || view == View::Career || view == View::Survival || view == View::Openings || view == View::OpeningStudy) return 128;
-    if (view == View::Trophies) return 200;
+    if (view == View::Trophies || view == View::TrophyLeaderboard) return 200;
     if (view == View::ConfirmDelete || view == View::ConfirmProfileDelete || view == View::ConfirmEndAttempt) return 122;
     if (view == View::Result || view == View::TrainingEnd)
         return 130;
@@ -969,7 +970,7 @@ void App::activate() {
         else { if (save()) exitRequested = true; }
         return;
     }
-    if (view == View::Modes || view == View::Career || view == View::Survival || view == View::ConfirmEndAttempt || view == View::Trophies) { progressionAction(); return; }
+    if (view == View::Modes || view == View::Career || view == View::Survival || view == View::ConfirmEndAttempt || view == View::Trophies || view == View::TrophyLeaderboard) { progressionAction(); return; }
     if (view == View::Profiles || view == View::ProfileSlot || view == View::ConfirmProfileDelete) { profileAction(); return; }
     if (view == View::Developer) { developerAction(); return; }
     audio.play(0, state.settings.sound);
@@ -1489,6 +1490,24 @@ void App::update(Input in, int64_t elapsedMs) {
         seekOpening(openingPly + ((in.keys & Left) ? -1 : 1)); return;
     }
     if (view == View::Home && ((in.keys & Select) || (in.touch && in.x >= 12 && in.x < 308 && in.y >= 224 && in.y < 240))) { go(View::Modes); return; }
+    if (view == View::Trophies && ((in.keys & Select) ||
+        (in.touch && in.x >= 12 && in.x < 308 && in.y >= 142 && in.y < 163))) {
+        readLeaderboard();
+        go(View::TrophyLeaderboard);
+        return;
+    }
+    if (view == View::TrophyLeaderboard && trophyCount) {
+        if (in.keys & (Left | Right | Up | Down)) {
+            const int direction = in.keys & (Left | Up) ? -1 : 1;
+            trophyFocus = (trophyFocus + direction + trophyCount) % trophyCount;
+            return;
+        }
+        if (in.touch && in.x >= 12 && in.x < 308 && in.y >= 36 && in.y < 102) {
+            const int row = (in.y - 36) / 22;
+            if (row < trophyCount) trophyFocus = row;
+            return;
+        }
+    }
     if (view == View::Trophies && in.touch && in.y >= 170 && in.y < 191) {
         if (in.x >= 12 && in.x < 152) trophyIndex = (trophyIndex + 19) % 20;
         else if (in.x >= 166 && in.x < 308) trophyIndex = (trophyIndex + 1) % 20;
@@ -1843,7 +1862,7 @@ void App::bottom(Renderer &r) {
         button(r,12,96,296,"Español",focus==0);button(r,12,120,296,"English",focus==1);
     } else if (view == View::Openings || view == View::OpeningStudy) {
         drawOpeningBottom(r);
-    } else if (view == View::Modes || view == View::Career || view == View::Survival || view == View::ConfirmEndAttempt || view == View::Trophies) {
+    } else if (view == View::Modes || view == View::Career || view == View::Survival || view == View::ConfirmEndAttempt || view == View::Trophies || view == View::TrophyLeaderboard) {
         drawProgressionBottom(r);
     } else if (view == View::Profiles) {
         for (int i = 0; i < 3; ++i) {
@@ -2194,7 +2213,8 @@ void App::bottom(Renderer &r) {
                view == View::Home ? "SELECT: CARRERA / SUPERVIVENCIA / TROFEOS"
                : view == View::Openings ? "IZQ/DER: APERTURA  A: ELEGIR  B: VOLVER"
                : view == View::OpeningStudy ? "IZQ/DER: REPASAR LINEA  B: CATALOGO"
-               : view == View::Trophies ? "IZQ/DER: TROFEO  A/B: VOLVER"
+               : view == View::Trophies ? "SELECT: TABLA  IZQ/DER: TROFEO"
+               : view == View::TrophyLeaderboard ? "CRUCETA: PERFIL  B: VOLVER"
                : view == View::Review ? "IZQ/DER: REPASAR  ARRIBA/ABAJO: INICIO/FIN"
                : view == View::Lessons ? "IZQ/DER: RETO  A: ELEGIR  B: VOLVER"
                : view == View::Game   ? "A: ELEGIR  B: CANCELAR  X: PISTA"
@@ -2219,7 +2239,7 @@ void App::draw(Renderer &r) {
         if(view==View::ComposerWorkshop)composerUI->draw(r,skin);else variantsUI->draw(r,skin);
         drawBattery(r);r.end();return;
     }
-    if (view == View::Modes || view == View::Career || view == View::Survival || view == View::ConfirmEndAttempt || view == View::Trophies) {
+    if (view == View::Modes || view == View::Career || view == View::Survival || view == View::ConfirmEndAttempt || view == View::Trophies || view == View::TrophyLeaderboard) {
         drawProgressionTop(r);
     } else if (view == View::Profiles || view == View::ProfileSlot || view == View::ConfirmProfileDelete) {
         r.screenBegin(0, bg);

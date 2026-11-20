@@ -1,4 +1,5 @@
 #include "ui/app.hpp"
+#include <algorithm>
 #include <cassert>
 #include <filesystem>
 #include <fstream>
@@ -17,6 +18,49 @@ static chess::Game mate(const chess::Game &initial) {
     assert(game.result==chess::Result::WhiteWin);return game;
 }
 static uint32_t sum(const std::string &s){uint32_t h=2166136261u;for(unsigned char c:s)h=(h^c)*16777619u;return h;}
+static void leaderboard(const std::string &root) {
+    namespace fs = std::filesystem;
+    profiles::Manager manager(root);
+    assert(manager.init() && manager.migrate() && manager.create(0,"Reef"));
+    graphics::Renderer renderer; assert(renderer.init());
+    auto render = [&](int slots, bool partial) {
+        ui::App app(root,true); app.init();
+        if (app.view == ui::View::Language) key(app,ui::A);
+        tap(app,48); tap(app,48); key(app,ui::A);
+        modes(app); tap(app,96); assert(app.view==ui::View::Trophies);
+        key(app,ui::Select); assert(app.view==ui::View::TrophyLeaderboard);
+        app.draw(renderer);
+        auto visible = [&](const std::string &line) {
+            const auto &texts = renderer.visibleTexts();
+            return std::find(texts.begin(),texts.end(),line)!=texts.end();
+        };
+        assert(visible("TABLA DE TROFEOS"));
+        if (slots==1) assert(visible("#1  Reef  0/20"));
+        if (slots>=2) {
+            assert(visible("#1  Apex  1/20") && visible("#2  Reef  0/20"));
+            assert(visible("Primera victoria"));
+            tap(app,63); app.draw(renderer); assert(!visible("Primera victoria"));
+        }
+        if (slots==3 && !partial) assert(visible("#3  Tied  0/20"));
+        if (partial) assert(visible("Algunas ranuras no se pudieron leer."));
+        key(app,ui::B); assert(app.view==ui::View::Trophies);
+        tap(app,150); assert(app.view==ui::View::TrophyLeaderboard);
+        tap(app,207); assert(app.view==ui::View::Trophies);
+    };
+    render(1,false);
+    assert(manager.create(1,"Apex") && manager.create(2,"Tied"));
+    const auto second = manager.path(1) + "/profile.dat";
+    economy::State winner; storage::Store store(manager.path(1)); assert(store.load(winner));
+    winner.profile.achievements |= 1u;
+    assert(store.save(winner));
+    const auto before = fs::last_write_time(second);
+    render(3,false);
+    assert(fs::last_write_time(second)==before);
+    const auto corrupt = manager.path(2) + "/profile.dat";
+    std::ofstream(corrupt) << "invalid";
+    render(3,true);
+    assert(fs::file_size(corrupt)==7);
+}
 int main(){
     char path[]="/tmp/chess-progression-ui-XXXXXX";assert(mkdtemp(path));const std::string root=path;
     {
@@ -81,5 +125,6 @@ int main(){
             assert(a.view==ui::View::Career&&a.state.profile.coins==150);assert(a.save());}
         assert(std::filesystem::file_size(slot+"/progression.dat")==3);
     }
+    leaderboard(root+"/leaderboard");
     std::filesystem::remove_all(root);std::cout<<"Progression UI: modes, resume, normal isolation, trophies, v3 migration, interrupted payout and exactly-once coins passed\n";
 }

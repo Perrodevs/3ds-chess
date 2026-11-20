@@ -6,6 +6,8 @@ releases. No historical commits or version tags are inferred from those reports.
 
 ## Unreleased
 
+- Add a read-only local trophy leaderboard with a stable slot-order tiebreak and per-profile Career, tournament and Survival details.
+
 - Diagnose interrupted log writes in memory, show the session identifier, and check legacy backups even without a primary.
 
 - Queue match dialogue by event with a timed lower-screen portrait panel, and add a per-profile option to reduce frequent commentary.

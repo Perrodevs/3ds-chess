@@ -81,7 +81,8 @@ enum class View {
     OpeningStudy,
     ComposerWorkshop,
     VariantWorkshop,
-    Language
+    Language,
+    TrophyLeaderboard
 };
 using ClockSource = std::chrono::steady_clock::time_point (*)(void *);
 class App {
@@ -135,6 +136,16 @@ class App {
     progression::State progressionState;
     bool progressionReady = false, progressionActive = false;
     int trophyIndex = 0;
+    struct TrophyRow {
+        std::string name;
+        uint32_t unlocked = 0;
+        uint64_t wins = 0, survival = 0;
+        int slot = 0, avatar = 0, division = 0, total = 0;
+        bool partial = false;
+    };
+    std::array<TrophyRow, profiles::capacity> trophyRows{};
+    int trophyCount = 0, trophyFocus = 0, unreadableProfiles = 0;
+    void readLeaderboard();
     View trophyReturn = View::Modes;
     void beginProgression(progression::Kind);
     void leaveProgression();
