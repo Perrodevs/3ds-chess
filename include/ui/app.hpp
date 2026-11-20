@@ -120,6 +120,7 @@ class App {
     void loadData();
     bool selectProfile(int);
     void profileAction();
+    void createProfile(const std::string &name);
     openings::Store openingStore;
     openings::Run openingRun;
     bool openingReady = false, openingActive = false, openingPractice = false;
@@ -268,6 +269,8 @@ class App {
     bool hintPending() const { return hints.running(); }
     chess::Move suggestedMove() const { return hintMove; }
     void setName(const std::string &);
+    std::string profileNameInitial() const;
+    void cancelProfileName(bool failed, int result);
     bool save();
     void suspend();
     void resume();

@@ -6,6 +6,8 @@ releases. No historical commits or version tags are inferred from those reports.
 
 ## Unreleased
 
+- Ask for a name when creating a profile and retain a one-tap suggested-name fallback. Report invalid names, keyboard failures and profile I/O stages without recording player names.
+
 ## 1.4.0 RC1 — Diagnostic System
 
 - Run bilingual startup checks and offer extended checks, recent errors, a startup summary and severity controls in Developer.

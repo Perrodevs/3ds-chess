@@ -69,6 +69,8 @@ int main(int argc, char **argv) {
         press(ui::A);
         assert(app.view == ui::View::ProfileSlot);
         press(ui::A);
+        assert(app.wantsName);
+        app.setName("Console Test");
         assert(app.view == ui::View::Title); // Failed migration must not disable a new slot.
     }
     std::ifstream old(directory / "profile.dat");

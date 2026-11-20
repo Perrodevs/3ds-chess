@@ -196,6 +196,7 @@ bool Manager::create(int slot, const std::string &name, int avatar, storage::Sav
     createCode = "PROFILE_DATA_WRITE_FAILED";
     log.add(Level::Debug, "PROFILE_DATA_READY", "initial_state");
     if (!store.save(state)) {
+        log.add(Level::Error, createCode, "initial_profile_save", slot);
         error = "Error al escribir perfiles";
         return false;
     }

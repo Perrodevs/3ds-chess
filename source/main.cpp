@@ -113,12 +113,15 @@ int main() {
                 swkbdInit(&keyboard, SWKBD_TYPE_NORMAL, 2, 24);
                 const auto nameHint=localization::translate("Nombre del jugador (sin acentos)");
                 swkbdSetHintText(&keyboard,nameHint.c_str());
-                swkbdSetInitialText(&keyboard, app.state.profile.name.c_str());
+                const auto initial = app.profileNameInitial();
+                swkbdSetInitialText(&keyboard, initial.c_str());
+                swkbdSetValidation(&keyboard, SWKBD_NOTEMPTY_NOTBLANK, 0, 0);
                 char name[128]{};
-                if (swkbdInputText(&keyboard, name, sizeof(name)) == SWKBD_BUTTON_CONFIRM)
+                const auto button = swkbdInputText(&keyboard, name, sizeof(name));
+                if (button == SWKBD_BUTTON_CONFIRM)
                     app.setName(name);
                 else
-                    app.wantsName = false;
+                    app.cancelProfileName(button == SWKBD_BUTTON_NONE, int(keyboard.result));
                 previous = std::chrono::steady_clock::now();
             }
             app.draw(renderer);

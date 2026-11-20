@@ -389,3 +389,6 @@
     {"Diagnosticos", "Diagnostics"},
     {"Los trucos son temporales.", "Cheats are temporary."},
     {"Migracion pendiente: originales conservados", "Migration pending: originals kept"},
+{"Jugador", "Player"},
+{"Crear con nombre sugerido", "Create with suggested name"},
+{"Teclado no disponible; usa el nombre sugerido.", "Keyboard unavailable. Use the suggested name."},

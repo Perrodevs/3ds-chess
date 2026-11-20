@@ -56,7 +56,13 @@ int main() {
         ui::App a(directory,true); a.init();if(a.view==ui::View::Language) a.update({ui::A,false,0,0},0); assert(a.view==ui::View::Profiles);
         key(a,ui::B); assert(a.view==ui::View::Profiles);
         tap(a,48); assert(a.view==ui::View::ProfileSlot); tap(a,48);
-        assert(a.view==ui::View::Title); key(a,ui::A);
+        assert(a.wantsName && a.view==ui::View::ProfileSlot);
+        a.cancelProfileName(false,0);
+        assert(!a.wantsName && a.view==ui::View::ProfileSlot);
+        key(a,ui::A); a.setName("   ");
+        assert(a.view==ui::View::ProfileSlot);
+        key(a,ui::A); a.setName("First");
+        assert(a.view==ui::View::Title && a.state.profile.name=="First"); key(a,ui::A);
         a.state.profile.coins=600; a.state.profile.wins=3; a.state.profile.completed=3;
         assert(a.state.profile.buy(5)); assert(a.save());
         profiles::Manager seeded(directory); assert(seeded.init());
@@ -65,7 +71,7 @@ int main() {
         ui::Preferences prefs; prefs.reducedMotion=true;
         assert(prefs.save(seeded.path(0)+"/ui.dat"));
         tap(a,168); assert(a.view==ui::View::Profiles);
-        tap(a,72); tap(a,48); assert(a.view==ui::View::Title); key(a,ui::A);
+        tap(a,72); tap(a,72); assert(a.view==ui::View::Title); key(a,ui::A);
         assert(a.state.profile.coins==0 && a.state.profile.wins==0 && a.state.profile.unlocked==1);
         profiles::Manager isolated(directory); assert(isolated.init());
         academy::Store otherAcademy(isolated.path(1)+"/academy.dat");
@@ -75,7 +81,7 @@ int main() {
         a.setName("Alex"); assert(a.state.profile.name=="Alex");
         key(a,ui::B); tap(a,48); tap(a,48); assert(a.view==ui::View::Title); key(a,ui::A);
         assert(a.state.profile.coins==420 && a.state.profile.wins==3 && (a.state.profile.unlocked&(1u<<5)));
-        tap(a,168); tap(a,96); tap(a,48); assert(a.view==ui::View::Title); key(a,ui::A);
+        tap(a,168); tap(a,96); tap(a,48); assert(a.wantsName); a.setName("Third"); assert(a.view==ui::View::Title); key(a,ui::A);
         assert(a.state.profile.coins==0);
         tap(a,168); tap(a,72); tap(a,120); assert(a.view==ui::View::ConfirmProfileDelete);
         key(a,ui::B); assert(a.view==ui::View::ProfileSlot);
@@ -83,7 +89,7 @@ int main() {
         profiles::Manager manager(directory); assert(manager.init());
         assert(manager.slots[0].occupied && !manager.slots[1].occupied && manager.slots[2].occupied);
         economy::State first; storage::Store firstStore(manager.path(0)); assert(firstStore.load(first)); assert(first.profile.coins==420);
-        tap(a,72); tap(a,48); assert(a.view==ui::View::Title); assert(a.state.profile.coins==0 && a.state.profile.unlocked==1);
+        tap(a,72); tap(a,72); assert(a.view==ui::View::Title); assert(a.state.profile.coins==0 && a.state.profile.unlocked==1);
         assert(a.save());
         profiles::Manager check(directory); assert(check.init());
         academy::Store originalAcademy(check.path(0)+"/academy.dat");

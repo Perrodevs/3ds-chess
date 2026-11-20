@@ -8,6 +8,7 @@ bool App::selectProfile(int index) {
     economy::State candidate;
     storage::Store candidateStore(profileManager.path(index));
     if (!candidateStore.load(candidate)) {
+        diagnostics::journal().add(diagnostics::Level::Error, "PROFILE_ACTIVATE_FAILED", "slot_reload", index);
         message("Perfil danado: prueba otra ranura; archivos conservados"); return false;
     }
     if (activeProfile >= 0 && !save()) return false;
@@ -58,14 +59,14 @@ void App::profileAction() {
     }
     const auto &slot = profileManager.slots[size_t(profileChoice)];
     if (focus == 0) {
-        if (!slot.occupied && !profileManager.create(profileChoice, "Jugador " + std::to_string(profileChoice + 1), profileChoice)) {
-            message(profileManager.createCode);
-            diagnostics::journal().flush();
-            return;
+        if (slot.occupied) selectProfile(profileChoice);
+        else {
+            diagnostics::journal().add(diagnostics::Level::Info, "PROFILE_KEYBOARD_OPEN", "create", profileChoice);
+            wantsName = true;
         }
-        selectProfile(profileChoice);
     } else if (focus == 1) {
-        if (activeProfile == profileChoice && slot.occupied) wantsName = true;
+        if (!slot.occupied) createProfile(profileNameInitial());
+        else if (activeProfile == profileChoice) wantsName = true;
         else message("Entra al perfil antes de renombrarlo");
     } else if (focus == 2) {
         if (!slot.occupied) { message("Crea primero el perfil"); return; }
@@ -74,5 +75,26 @@ void App::profileAction() {
         if (slot.occupied) go(View::ConfirmProfileDelete);
         else message("La ranura ya esta vacia");
     } else back();
+}
+std::string App::profileNameInitial() const {
+    if (profilesEnabled && view == View::ProfileSlot &&
+        !profileManager.slots[size_t(profileChoice)].occupied)
+        return localization::translate("Jugador") + std::string(" ") + std::to_string(profileChoice + 1);
+    return state.profile.name;
+}
+void App::cancelProfileName(bool failed, int result) {
+    wantsName = false;
+    diagnostics::journal().add(failed ? diagnostics::Level::Error : diagnostics::Level::Info,
+        failed ? "PROFILE_KEYBOARD_FAILED" : "PROFILE_KEYBOARD_CANCELLED", "software_keyboard", result);
+    if (failed) message("Teclado no disponible; usa el nombre sugerido.");
+}
+void App::createProfile(const std::string &name) {
+    if (!profileManager.create(profileChoice, name, profileChoice)) {
+        message(profileManager.createCode);
+        diagnostics::journal().flush();
+        return;
+    }
+    noticeFrames = 0;
+    selectProfile(profileChoice);
 }
 } // namespace ui

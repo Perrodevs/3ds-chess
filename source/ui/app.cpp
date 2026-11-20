@@ -806,8 +806,11 @@ void App::play(chess::Move m) {
 void App::setName(const std::string &name) {
     wantsName = false;
     diagnostics::journal().add(diagnostics::Level::Debug, "PROFILE_NAME_INPUT", "confirmed_text_omitted");
-    if (name.empty())
+    if (profilesEnabled && view == View::ProfileSlot &&
+        !profileManager.slots[size_t(profileChoice)].occupied) {
+        createProfile(name);
         return;
+    }
     std::string clean;
     for (unsigned char c : name)
         if (c >= 32 && c <= 126 && clean.size() < 24)
@@ -1779,7 +1782,8 @@ void App::bottom(Renderer &r) {
     } else if (view == View::ProfileSlot) {
         const auto &slot = profileManager.slots[size_t(profileChoice)];
         menu({slot.occupied ? "Jugar con este perfil" : "Crear perfil nuevo",
-              "Renombrar perfil", "Cambiar avatar", "Eliminar perfil...", "Volver"});
+              slot.occupied ? "Renombrar perfil" : "Crear con nombre sugerido",
+              "Cambiar avatar", "Eliminar perfil...", "Volver"});
         r.rawText(12,177,localization::translate("Ranura ")+std::to_string(profileChoice+1)+": "+(slot.occupied?slot.name:localization::translate("vacia")),gold,1,49);
         paragraph(r,12,195,"Para renombrar, entra primero en el perfil. Los borrados conservan una copia de recuperacion.",muted,49,2);
     } else if (view == View::ConfirmProfileDelete) {
@@ -2096,7 +2100,7 @@ void App::bottom(Renderer &r) {
     }
     if (noticeFrames > 0) {
         if (view == View::ProfileSlot && notice.rfind("PROFILE_", 0) == 0)
-            r.text(12, 214, "No se pudo crear el perfil", red, 1, 49);
+            r.text(12, 214, profileManager.error, red, 1, 49);
         r.text(12, 226, notice, flash ? gold : muted, 1, 49);
     }
     else if (interaction)
